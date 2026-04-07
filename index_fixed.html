@@ -1,0 +1,3580 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASTM D6913 Gradation Calculator | حاسبة التدرج الحبيبي</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #e9ecef;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --accent-color: #0d6efd;
+            --accent-hover: #0b5ed7;
+            --success: #198754;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --shadow: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-lg: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1d20;
+            --bg-secondary: #2d3238;
+            --bg-tertiary: #3a3f47;
+            --text-primary: #e9ecef;
+            --text-secondary: #adb5bd;
+            --border-color: #495057;
+            --shadow: 0 2px 4px rgba(0,0,0,0.3);
+            --shadow-lg: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            padding: 20px 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-title h1 {
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .header-title .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: var(--text-secondary);
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: #000;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-icon {
+            padding: 10px;
+            font-size: 1.2rem;
+        }
+
+        /* Progress Indicator */
+        .progress-container {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border-color);
+            z-index: 0;
+        }
+
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .progress-step.active .progress-circle {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .progress-step.completed .progress-circle {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .progress-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-step.active .progress-label {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-button:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .tab-button.active {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Cards and Sections */
+        .card {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-group label .required {
+            color: var(--danger);
+            margin-right: 3px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: border 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-secondary);
+        }
+
+        table th,
+        table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        table th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        table input[type="number"],
+        table input[type="text"] {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        table input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* Mode Selection */
+        .mode-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .mode-option {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            padding: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-option:hover {
+            border-color: var(--accent-color);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .mode-option.selected {
+            border-color: var(--accent-color);
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .mode-option h3 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .mode-option p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Alert and Status */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-info {
+            background: #cfe2ff;
+            color: #084298;
+            border: 1px solid #b6d4fe;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #664d03;
+            border: 1px solid #ffecb5;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #842029;
+            border: 1px solid #f5c2c7;
+        }
+
+        .alert-success {
+            background: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+        }
+
+        [data-theme="dark"] .alert-info {
+            background: #052c65;
+            color: #6ea8fe;
+            border-color: #084298;
+        }
+
+        [data-theme="dark"] .alert-warning {
+            background: #664d03;
+            color: #ffda6a;
+            border-color: #997404;
+        }
+
+        [data-theme="dark"] .alert-danger {
+            background: #842029;
+            color: #ea868f;
+            border-color: #a52834;
+        }
+
+        [data-theme="dark"] .alert-success {
+            background: #0f5132;
+            color: #75b798;
+            border-color: #146c43;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .badge-warning {
+            background: var(--warning);
+            color: #000;
+        }
+
+        .badge-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Collapsible Sections */
+        .collapsible-header {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .collapsible-header:hover {
+            background: var(--border-color);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapsible-content.open {
+            max-height: 2000px;
+        }
+
+        /* Soil Classification Boxes */
+        .classification-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .class-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .class-box.gravel {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .class-box.sand {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+
+        .class-box.fines {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+
+        .class-box.d-values {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #333;
+        }
+
+        .class-box.coefficients {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+
+        .class-box.uscs {
+            background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+        }
+
+        .class-box.aashto {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: #333;
+        }
+
+        .class-box h4 {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .class-box .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .class-box .label {
+            font-size: 0.85rem;
+            opacity: 0.95;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 450px;
+            margin: 20px 0;
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        /* Auto-save indicator */
+        .save-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--success);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .save-indicator.show {
+            opacity: 1;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+
+            .header,
+            .tabs,
+            .btn,
+            .progress-container,
+            .no-print {
+                display: none !important;
+            }
+
+            .container {
+                max-width: 100%;
+                padding: 0;
+            }
+
+            .tab-content {
+                display: block !important;
+            }
+
+            #tab4 {
+                display: block !important;
+            }
+
+            .card {
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+
+            .report-page {
+                page-break-after: always;
+            }
+
+            .report-page:last-child {
+                page-break-after: auto;
+            }
+
+            table {
+                page-break-inside: auto;
+            }
+
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+
+            tfoot {
+                display: table-footer-group;
+            }
+        }
+
+        @page {
+            size: A4;
+            margin: 15mm;
+        }
+
+        /* Report Specific Styles */
+        .report-header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .report-header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .report-header .standard {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .report-header .report-number {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .report-logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .report-logo img {
+            max-width: 200px;
+            max-height: 100px;
+        }
+
+        .report-section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+
+        .report-section h2 {
+            font-size: 1.3rem;
+            color: var(--accent-color);
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .report-item {
+            display: flex;
+            padding: 10px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        .report-item .label {
+            font-weight: 600;
+            min-width: 150px;
+            color: var(--text-secondary);
+        }
+
+        .report-item .value {
+            color: var(--text-primary);
+        }
+
+        .signature-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 50px;
+            page-break-inside: avoid;
+        }
+
+        .signature-box {
+            text-align: center;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        .signature-box .title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .signature-box .name {
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .signature-box .line {
+            border-top: 2px solid var(--text-primary);
+            margin: 10px 0;
+        }
+
+        .signature-box .label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Atterberg Limits Input */
+        .limits-input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-grid,
+            .mode-selection,
+            .classification-grid,
+            .report-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .signature-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Utilities */
+        .text-center {
+            text-align: center;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header no-print">
+            <div class="header-title">
+                <h1>🧪 حاسبة التدرج الحبيبي | ASTM D6913 Gradation Calculator</h1>
+                <div class="subtitle">معمل الجيوتقنيك الاحترافي | Professional Geotechnical Laboratory System</div>
+            </div>
+            <div class="header-controls">
+                <button class="btn btn-icon" onclick="toggleTheme()" title="تبديل الوضع | Toggle Theme">🌓</button>
+                <button class="btn btn-success" onclick="saveProject()">💾 حفظ المشروع | Save</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('loadProjectInput').click()">📂 تحميل | Load</button>
+                <input type="file" id="loadProjectInput" accept=".json" style="display:none" onchange="loadProject(event)">
+                <button class="btn btn-warning" onclick="loadDemoData()">📊 بيانات تجريبية | Demo</button>
+                <button class="btn btn-danger" onclick="resetAll()">🔄 إعادة تعيين | Reset</button>
+            </div>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="progress-container no-print">
+            <div class="progress-steps">
+                <div class="progress-step active" id="progress1">
+                    <div class="progress-circle">1</div>
+                    <div class="progress-label">بيانات المشروع<br>Project Data</div>
+                </div>
+                <div class="progress-step" id="progress2">
+                    <div class="progress-circle">2</div>
+                    <div class="progress-label">تحليل المناخل<br>Sieve Analysis</div>
+                </div>
+                <div class="progress-step" id="progress3">
+                    <div class="progress-circle">3</div>
+                    <div class="progress-label">النتائج<br>Results</div>
+                </div>
+                <div class="progress-step" id="progress4">
+                    <div class="progress-circle">4</div>
+                    <div class="progress-label">التقرير النهائي<br>Final Report</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs no-print">
+            <button class="tab-button active" onclick="switchTab('tab1')">
+                📋 بيانات المشروع والبيئة | Project & Environmental Data
+            </button>
+            <button class="tab-button" onclick="switchTab('tab2')">
+                🔬 تحليل المناخل والحسابات | Sieve Analysis & Calculations
+            </button>
+            <button class="tab-button" onclick="switchTab('tab3')">
+                📊 النتائج ومنحنى التدرج | Results & Gradation Curve
+            </button>
+            <button class="tab-button" onclick="switchTab('tab4')">
+                📄 التقرير النهائي | Final Report
+            </button>
+        </div>
+
+        <!-- Tab 1: Project & Environmental Data -->
+        <div id="tab1" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    🏢 معلومات المختبر | Laboratory Information
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label><span class="required">*</span> اسم المختبر | Laboratory Name</label>
+                        <input type="text" id="labName" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>شعار المختبر (رابط) | Laboratory Logo (URL)</label>
+                        <input type="text" id="labLogo" placeholder="https://example.com/logo.png" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label><span class="required">*</span> رقم التقرير | Report Number</label>
+                        <input type="text" id="reportNumber" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label><span class="required">*</span> اسم الفني | Technician Name</label>
+                        <input type="text" id="technicianName" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>اسم المراجع | Reviewer Name</label>
+                        <input type="text" id="reviewerName" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>اسم المعتمد | Approver Name</label>
+                        <input type="text" id="approverName" onchange="autoSave()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    🏗️ معلومات المشروع | Project Information
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label><span class="required">*</span> اسم المشروع | Project Name</label>
+                        <input type="text" id="projectName" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>رقم المشروع | Project Number</label>
+                        <input type="text" id="projectNumber" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>العميل | Client</label>
+                        <input type="text" id="client" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>الاستشاري | Consultant</label>
+                        <input type="text" id="consultant" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>المقاول | Contractor</label>
+                        <input type="text" id="contractor" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>الموقع | Location</label>
+                        <input type="text" id="location" onchange="autoSave()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    🧪 معلومات العينة | Sample Information
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label><span class="required">*</span> رقم العينة | Sample ID</label>
+                        <input type="text" id="sampleId" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label><span class="required">*</span> وصف العينة | Sample Description</label>
+                        <input type="text" id="sampleDescription" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>مصدر العينة | Sample Source</label>
+                        <input type="text" id="sampleSource" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>تاريخ الاستلام | Date Received</label>
+                        <input type="date" id="dateReceived" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label><span class="required">*</span> تاريخ الاختبار | Test Date</label>
+                        <input type="date" id="testDate" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label><span class="required">*</span> تاريخ التقرير | Report Date</label>
+                        <input type="date" id="reportDate" onchange="autoSave()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    🌡️ الظروف البيئية | Environmental Conditions
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>درجة حرارة المختبر (°C) | Laboratory Temperature</label>
+                        <input type="number" step="0.1" id="labTemperature" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>الرطوبة النسبية (%) | Relative Humidity</label>
+                        <input type="number" step="0.1" id="relativeHumidity" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>موقع الاختبار | Test Location</label>
+                        <input type="text" id="testLocation" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>ملاحظات بيئية | Environmental Notes</label>
+                        <textarea id="environmentalNotes" onchange="autoSave()"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    📐 حدود أتربرج (للتصنيف) | Atterberg Limits (for Classification)
+                </div>
+                <div class="alert alert-info">
+                    ℹ️ أدخل حدود أتربرج إذا كانت متاحة لحساب التصنيف الكامل وفقاً لـ USCS و AASHTO<br>
+                    Enter Atterberg limits if available for complete classification according to USCS & AASHTO
+                </div>
+                <div class="limits-input-grid">
+                    <div class="form-group">
+                        <label>حد السيولة LL (%) | Liquid Limit</label>
+                        <input type="number" step="0.1" id="liquidLimit" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>حد اللدونة PL (%) | Plastic Limit</label>
+                        <input type="number" step="0.1" id="plasticLimit" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>معامل اللدونة PI (%) | Plasticity Index</label>
+                        <input type="number" step="0.1" id="plasticityIndex" readonly style="background: var(--bg-tertiary);">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Sieve Analysis & Calculations -->
+        <div id="tab2" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    ⚙️ إعدادات الاختبار | Test Configuration
+                </div>
+                
+                <div class="alert alert-info">
+                    📖 <strong>ASTM D6913 Guidance:</strong><br>
+                    • إذا كان الحد الأقصى لحجم الجسيمات ≥ 19.0 mm (3/4 in)، يُنصح باستخدام الغربلة المركبة<br>
+                    • If maximum particle size ≥ 19.0 mm (3/4 in), composite sieving is recommended<br>
+                    • الطريقة A: تقريب لأقرب 1% | Method A: Round to nearest 1%<br>
+                    • الطريقة B: تقريب لأقرب 0.1% | Method B: Round to nearest 0.1%
+                </div>
+
+                <div class="form-grid mb-20">
+                    <div class="form-group">
+                        <label><span class="required">*</span> الطريقة | Method</label>
+                        <select id="methodSelect" onchange="autoSave()">
+                            <option value="A">Method A (Round to 1%)</option>
+                            <option value="B">Method B (Round to 0.1%)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>الحد الأقصى لحجم الجسيمات (mm) | Maximum Particle Size</label>
+                        <input type="number" step="0.01" id="maxParticleSize" onchange="autoSave()">
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 15px;">اختر وضع الاختبار | Select Test Mode:</h3>
+                <div class="mode-selection">
+                    <div class="mode-option selected" onclick="selectTestMode('single')">
+                        <h3>🔵 غربلة بمجموعة واحدة</h3>
+                        <h3>Single Sieve-Set Sieving</h3>
+                        <p>للعينات ذات الحبيبات الأصغر من 19 mm</p>
+                        <p>For samples with particles smaller than 19 mm</p>
+                    </div>
+                    <div class="mode-option" onclick="selectTestMode('composite-single')">
+                        <h3>🟢 غربلة مركبة - فصل واحد</h3>
+                        <h3>Composite - Single Separation</h3>
+                        <p>فصل واحد عند منخل محدد (عادةً No. 4)</p>
+                        <p>One separation at designated sieve (typically No. 4)</p>
+                    </div>
+                    <div class="mode-option" onclick="selectTestMode('composite-double')">
+                        <h3>🟠 غربلة مركبة - فصل مزدوج</h3>
+                        <h3>Composite - Double Separation</h3>
+                        <p>فصلين عند منخلين محددين</p>
+                        <p>Two separations at designated sieves</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Single Sieve-Set Section -->
+            <div id="singleSieveSection" style="display: block;">
+                <div class="card">
+                    <div class="card-header">
+                        📊 غربلة بمجموعة واحدة | Single Sieve-Set Sieving
+                    </div>
+                    
+                    <div class="form-grid mb-20">
+                        <div class="form-group">
+                            <label><span class="required">*</span> الكتلة الجافة للعينة S,Md (g) | Dry Mass of Specimen</label>
+                            <input type="number" step="0.01" id="singleSpecimenMass" onchange="autoSave()">
+                        </div>
+                        <div class="form-group">
+                            <label>الكتلة بعد الغسل (اختياري) (g) | Washed Mass (optional)</label>
+                            <input type="number" step="0.01" id="singleWashedMass" onchange="autoSave()">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-success mb-20" onclick="calculateSingle()">
+                        🧮 احسب النتائج | Calculate Results
+                    </button>
+
+                    <div class="collapsible-header" onclick="toggleCollapse(this)">
+                        <span>📋 جدول المناخل | Sieve Table</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="collapsible-content open">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>استخدام<br>Use</th>
+                                        <th>المنخل<br>Sieve</th>
+                                        <th>الفتحة (mm)<br>Opening</th>
+                                        <th>الكتلة المحجوزة التراكمية (g)<br>Cumulative Mass Retained</th>
+                                        <th>الكتلة المحجوزة الفردية (g)<br>Individual Mass Retained</th>
+                                        <th>النسبة المحجوزة التراكمية (%)<br>Cumulative % Retained</th>
+                                        <th>النسبة المحجوزة الفردية (%)<br>% Retained</th>
+                                        <th>النسبة المارة (%)<br>% Passing</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="singleSieveTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Composite Single Separation Section -->
+            <div id="compositeSingleSection" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        📊 غربلة مركبة - فصل واحد | Composite Sieving - Single Separation
+                    </div>
+
+                    <div class="alert alert-warning">
+                        ⚠️ <strong>ASTM Requirements:</strong><br>
+                        • يجب أن تكون CPL (Coarser Portion Loss) ≤ 0.5%<br>
+                        • يجب أن تكون الكتلة المحجوزة على أول منخل في القسم الأدق ≤ 2%<br>
+                        • CPL must be ≤ 0.5% | Mass retained on first finer sieve must be ≤ 2%
+                    </div>
+
+                    <div class="form-grid mb-20">
+                        <div class="form-group">
+                            <label><span class="required">*</span> المنخل الفاصل المحدد | Designated Separating Sieve</label>
+                            <select id="compSingleSeparatingSieve" onchange="autoSave(); refreshCompositeTables()">
+                                <option value="4.75">No. 4 (4.75 mm)</option>
+                                <option value="9.5">3/8 in (9.5 mm)</option>
+                                <option value="19.0">3/4 in (19.0 mm)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h3 style="margin: 20px 0 10px;">القسم الأخشن | Coarser Portion</h3>
+                    <div class="form-grid mb-20">
+                        <div class="form-group">
+                            <label><span class="required">*</span> الكتلة الجافة CP,Md (g)</label>
+                            <input type="number" step="0.01" id="compCoarserMass" onchange="autoSave()">
+                        </div>
+                        <div class="form-group">
+                            <label>الكتلة بعد الغسل CPwMd (g)</label>
+                            <input type="number" step="0.01" id="compCoarserWashedMass" onchange="autoSave()">
+                        </div>
+                        <div class="form-group">
+                            <label>كتلة الصينية CP,MRpan (g)</label>
+                            <input type="number" step="0.01" id="compCoarserPanMass" onchange="autoSave()">
+                        </div>
+                    </div>
+
+                    <h3 style="margin: 20px 0 10px;">القسم الأدق / العينة الفرعية | Finer Portion / Subspecimen</h3>
+                    <div class="form-grid mb-20">
+                        <div class="form-group">
+                            <label>الكتلة الرطبة/الجافة FP,Mm (g)</label>
+                            <input type="number" step="0.01" id="compFinerMoistMass" onchange="autoSave()">
+                        </div>
+                        <div class="form-group">
+                            <label>المحتوى المائي wfp (%)</label>
+                            <input type="number" step="0.01" id="compFinerWaterContent" onchange="autoSave()">
+                        </div>
+                        <div class="form-group">
+                            <label><span class="required">*</span> الكتلة الجافة للعينة الفرعية SubS,Md (g)</label>
+                            <input type="number" step="0.01" id="compSubspecimenMass" onchange="autoSave()">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-success mb-20" onclick="calculateCompositeSingle()">
+                        🧮 احسب النتائج المركبة | Calculate Composite Results
+                    </button>
+
+                    <div class="collapsible-header" onclick="toggleCollapse(this)">
+                        <span>📋 جدول القسم الأخشن | Coarser Portion Table</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="collapsible-content open">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>استخدام<br>Use</th>
+                                        <th>المنخل<br>Sieve</th>
+                                        <th>الفتحة (mm)<br>Opening</th>
+                                        <th>الكتلة المحجوزة التراكمية (g)<br>CMR</th>
+                                        <th>الكتلة المحجوزة الفردية (g)<br>MR</th>
+                                        <th>النسبة المحجوزة التراكمية (%)<br>CPR</th>
+                                        <th>النسبة المارة (%)<br>PP</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="compCoarserTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="collapsible-header" onclick="toggleCollapse(this)">
+                        <span>📋 جدول القسم الأدق (العينة الفرعية) | Finer Portion (Subspecimen) Table</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="collapsible-content open">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>استخدام<br>Use</th>
+                                        <th>المنخل<br>Sieve</th>
+                                        <th>الفتحة (mm)<br>Opening</th>
+                                        <th>الكتلة المحجوزة التراكمية الجزئية (g)<br>FCMR</th>
+                                        <th>الكتلة المحجوزة الفردية (g)<br>MR</th>
+                                        <th>النسبة المحجوزة التراكمية الجزئية (%)<br>FCP</th>
+                                        <th>النسبة المارة النهائية (%)<br>Final PP</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="compFinerTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="cscfDisplay" class="alert alert-success mt-20" style="display: none;">
+                        <strong>CSCF (Composite Sieve Correction Factor):</strong>
+                        <span id="cscfValue"></span>
+                    </div>
+
+                    <div id="cplWarning" class="alert alert-danger mt-20" style="display: none;">
+                        ⚠️ <strong>تحذير | Warning:</strong> 
+                        <span id="cplMessage"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Composite Double Separation Section -->
+            <div id="compositeDoubleSection" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        📊 غربلة مركبة - فصل مزدوج | Composite Sieving - Double Separation
+                    </div>
+
+                    <div class="alert alert-info">
+                        ℹ️ هذا الوضع يستخدم عند وجود نطاق واسع من أحجام الجسيمات ويتطلب فصلين متتاليين<br>
+                        This mode is used when there's a wide range of particle sizes requiring two successive separations
+                    </div>
+
+                    <!-- Separating Sieves Selection -->
+                    <div class="form-grid mb-20">
+                        <div class="form-group">
+                            <label><span class="required">*</span> المنخل الفاصل الأول | 1st Designated Separating Sieve</label>
+                            <select id="compDouble1stSieve" onchange="autoSave(); refreshDoubleTables()">
+                                <option value="75.0">3 in (75.0 mm)</option>
+                                <option value="50.0">2 in (50.0 mm)</option>
+                                <option value="37.5">1.5 in (37.5 mm)</option>
+                                <option value="25.0">1 in (25.0 mm)</option>
+                                <option value="19.0" selected>3/4 in (19.0 mm)</option>
+                                <option value="9.5">3/8 in (9.5 mm)</option>
+                                <option value="4.75">No. 4 (4.75 mm)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label><span class="required">*</span> المنخل الفاصل الثاني | 2nd Designated Separating Sieve</label>
+                            <select id="compDouble2ndSieve" onchange="autoSave(); refreshDoubleTables()">
+                                <option value="9.5">3/8 in (9.5 mm)</option>
+                                <option value="4.75" selected>No. 4 (4.75 mm)</option>
+                                <option value="2.00">No. 10 (2.00 mm)</option>
+                                <option value="0.850">No. 20 (0.850 mm)</option>
+                                <option value="0.425">No. 40 (0.425 mm)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 1st Coarser Portion -->
+                    <div class="collapsible-header" onclick="toggleCollapse(this)">
+                        <span>📦 القسم الأخشن الأول | 1st Coarser Portion</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="collapsible-content open">
+                        <div class="form-grid mb-20">
+                            <div class="form-group">
+                                <label><span class="required">*</span> الكتلة الجافة للقسم الأخشن الأول (g) | 1st CP Dry Mass</label>
+                                <input type="number" id="double1stCPMd" step="0.1" oninput="autoSave(); calculateDoubleComposite()" placeholder="e.g., 2500.0">
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>استخدام<br>Use</th>
+                                        <th>المنخل<br>Sieve</th>
+                                        <th>الفتحة (mm)<br>Opening</th>
+                                        <th>الكتلة المحجوزة التراكمية (g)<br>CMR</th>
+                                        <th>الكتلة المحجوزة (g)<br>MR</th>
+                                        <th>النسبة المحجوزة التراكمية (%)<br>C%R</th>
+                                        <th>النسبة المحجوزة (%)<br>%R</th>
+                                        <th>النسبة المارة (%)<br>%P</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="double1stCoarserTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 1st Subspecimen (Finer from 1st separation) -->
+                    <div class="collapsible-header" onclick="toggleCollapse(this)">
+                        <span>📋 العينة الفرعية الأولى | 1st Subspecimen</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="collapsible-content open">
+                        <div class="form-grid mb-20">
+                            <div class="form-group">
+                                <label><span class="required">*</span> الكتلة الرطبة أو الجافة هوائياً للجزء الأدق (g) | 1st FP Moist/Air-dry Mass</label>
+                                <input type="number" id="double1stFPMm" step="0.1" oninput="autoSave(); calculateDoubleComposite()" placeholder="e.g., 1500.0">
+                            </div>
+                            <div class="form-group">
+                                <label>محتوى الماء للجزء الأدق (%) | 1st FP Water Content (optional)</label>
+                                <input type="number" id="double1stFPw" step="0.1" oninput="autoSave(); calculateDoubleComposite()" placeholder="e.g., 2.5">
+                            </div>
+                            <div class="form-group">
+                                <label><span class="required">*</span> الكتلة الجافة للعينة الفرعية الأولى (g) | 1st SubS Dry Mass</label>
+                                <input type="number" id="double1stSubSMd" step="0.1" oninput="autoSave(); calculateDoubleComposite()" placeholder="e.g., 1500.0">
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <strong>الكتلة الجافة الكلية للعينة الأصلية | Total Specimen Dry Mass:</strong>
+                            <span id="double1stTotalMass">-</span> g
+                        </div>
+                    </div>
+
+                    <!-- 2nd Coarser Portion -->
+                    <div class="collapsible-header" onclick="toggleCollapse(this)">
+                        <span>📦 القسم الأخشن الثاني | 2nd Coarser Portion</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="collapsible-content open">
+                        <div class="form-grid mb-20">
+                            <div class="form-group">
+                                <label><span class="required">*</span> الكتلة الجافة للقسم الأخشن الثاني (g) | 2nd CP Dry Mass</label>
+                                <input type="number" id="double2ndCPMd" step="0.1" oninput="autoSave(); calculateDoubleComposite()" placeholder="من 1st SubS">
+                            </div>
+                            <div class="form-group">
+                                <label>الكتلة الجافة بعد الغسل (g) | 2nd CP Washed Dry Mass (optional)</label>
+                                <input type="number" id="double2ndCPwMd" step="0.1" oninput="autoSave(); calculateDoubleComposite()" placeholder="إذا تم الغسل">
+                            </div>
+                            <div class="form-group">
+                                <label>كتلة الصينية (g) | 2nd CP Pan Mass (optional)</label>
+                                <input type="number" id="double2ndCPMRpan" step="0.1" oninput="autoSave(); calculateDoubleComposite()" placeholder="0.0">
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>استخدام<br>Use</th>
+                                        <th>المنخل<br>Sieve</th>
+                                        <th>الفتحة (mm)<br>Opening</th>
+                                        <th>الكتلة المحجوزة التراكمية الجزئية (g)<br>FCMR</th>
+                                        <th>الكتلة المحجوزة (g)<br>MR</th>
+                                        <th>النسبة المحجوزة التراكمية الجزئية (%)<br>FC%R</th>
+                                        <th>النسبة المارة النهائية (%)<br>Final %P</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="double2ndCoarserTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 2nd Subspecimen -->
+                    <div class="collapsible-header" onclick="toggleCollapse(this)">
+                        <span>📋 العينة الفرعية الثانية | 2nd Subspecimen</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="collapsible-content open">
+                        <div class="form-grid mb-20">
+                            <div class="form-group">
+                                <label><span class="required">*</span> الكتلة الجافة للعينة الفرعية الثانية (g) | 2nd SubS Dry Mass</label>
+                                <input type="number" id="double2ndSubSMd" step="0.1" oninput="autoSave(); calculateDoubleComposite()" placeholder="من 1st SubS">
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>استخدام<br>Use</th>
+                                        <th>المنخل<br>Sieve</th>
+                                        <th>الفتحة (mm)<br>Opening</th>
+                                        <th>الكتلة المحجوزة التراكمية الجزئية (g)<br>FCMR</th>
+                                        <th>الكتلة المحجوزة (g)<br>MR</th>
+                                        <th>النسبة المحجوزة التراكمية الجزئية (%)<br>FC%R</th>
+                                        <th>النسبة المارة النهائية (%)<br>Final %P</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="double2ndSubSTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- CSCF and Loss Display -->
+                    <div id="doubleCscfDisplay" class="alert alert-success mt-20" style="display: none;">
+                        <strong>📊 معاملات التصحيح المركبة | CSCF Values:</strong><br>
+                        <strong>1st CSCF:</strong> <span id="double1stCscfValue">-</span> %<br>
+                        <strong>2nd CSCF:</strong> <span id="double2ndCscfValue">-</span> %
+                    </div>
+
+                    <div id="doubleCplWarning" class="alert" style="display: none;">
+                        <span id="doubleCplMessage"></span>
+                    </div>
+
+                    <div class="alert alert-warning mt-20">
+                        ⚠️ يتم تطبيق معادلات CSCF المزدوجة تلقائياً | Double CSCF equations applied automatically
+                    </div>
+
+                    <div class="text-center mt-20">
+                        <button class="btn btn-primary" onclick="calculateDoubleComposite()">
+                            🧮 حساب النتائج | Calculate Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Results & Gradation Curve -->
+        <div id="tab3" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    📊 النتائج النهائية والتصنيف | Final Results & Classification
+                    <button class="btn btn-success" onclick="displayFinalResults()">🔄 تحديث | Refresh</button>
+                </div>
+
+                <div id="resultsWarnings"></div>
+
+                <!-- Soil Fractions -->
+                <h3 style="margin: 20px 0 15px;">📐 الكسور الحبيبية | Soil Fractions</h3>
+                <div class="classification-grid">
+                    <div class="class-box gravel">
+                        <h4>الحصى | GRAVEL</h4>
+                        <div class="value" id="gravelPercent">-</div>
+                        <div class="label">> 4.75 mm</div>
+                    </div>
+                    <div class="class-box sand">
+                        <h4>الرمل | SAND</h4>
+                        <div class="value" id="sandPercent">-</div>
+                        <div class="label">4.75 - 0.075 mm</div>
+                    </div>
+                    <div class="class-box fines">
+                        <h4>السلت والطين | FINES</h4>
+                        <div class="value" id="finesPercent">-</div>
+                        <div class="label">< 0.075 mm</div>
+                    </div>
+                </div>
+
+                <!-- D-values and Coefficients -->
+                <h3 style="margin: 20px 0 15px;">📏 قيم D ومعاملات التدرج | D-values & Gradation Coefficients</h3>
+                <div class="classification-grid">
+                    <div class="class-box d-values">
+                        <h4>D₁₀</h4>
+                        <div class="value" id="d10Value">-</div>
+                        <div class="label">mm</div>
+                    </div>
+                    <div class="class-box d-values">
+                        <h4>D₃₀</h4>
+                        <div class="value" id="d30Value">-</div>
+                        <div class="label">mm</div>
+                    </div>
+                    <div class="class-box d-values">
+                        <h4>D₆₀</h4>
+                        <div class="value" id="d60Value">-</div>
+                        <div class="label">mm</div>
+                    </div>
+                    <div class="class-box coefficients">
+                        <h4>معامل الانتظام | Cu</h4>
+                        <div class="value" id="cuValue">-</div>
+                        <div class="label">D₆₀ / D₁₀</div>
+                    </div>
+                    <div class="class-box coefficients">
+                        <h4>معامل التقعر | Cc</h4>
+                        <div class="value" id="ccValue">-</div>
+                        <div class="label">D₃₀² / (D₁₀ × D₆₀)</div>
+                    </div>
+                </div>
+
+                <!-- Classification Results -->
+                <h3 style="margin: 20px 0 15px;">🏷️ التصنيف | Soil Classification</h3>
+                <div class="classification-grid">
+                    <div class="class-box uscs">
+                        <h4>USCS Classification</h4>
+                        <div class="value" id="uscsClass">-</div>
+                        <div class="label" id="uscsDescription">-</div>
+                    </div>
+                    <div class="class-box aashto">
+                        <h4>AASHTO Classification</h4>
+                        <div class="value" id="aashtoClass">-</div>
+                        <div class="label" id="aashtoDescription">-</div>
+                    </div>
+                </div>
+
+                <!-- Final Gradation Table -->
+                <h3 style="margin: 20px 0 15px;">📋 جدول التدرج النهائي | Final Gradation Table</h3>
+                <div class="table-container">
+                    <table id="finalResultsTable">
+                        <thead>
+                            <tr>
+                                <th>المنخل<br>Sieve</th>
+                                <th>الفتحة (mm)<br>Opening</th>
+                                <th>الكتلة المحجوزة (g)<br>Mass Retained</th>
+                                <th>الكتلة المحجوزة التراكمية (g)<br>Cumulative MR</th>
+                                <th>النسبة المحجوزة (%)<br>% Retained</th>
+                                <th>النسبة المحجوزة التراكمية (%)<br>Cumulative %R</th>
+                                <th>النسبة المارة (%)<br>% Passing</th>
+                            </tr>
+                        </thead>
+                        <tbody id="finalResultsTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Gradation Curve -->
+                <h3 style="margin: 20px 0 15px;">📈 منحنى التدرج | Gradation Curve</h3>
+                <div class="chart-container">
+                    <canvas id="gradationChart"></canvas>
+                </div>
+
+                <div class="text-center mt-20">
+                    <button class="btn btn-success" onclick="exportCSV()">📥 تصدير CSV | Export CSV</button>
+                    <button class="btn btn-secondary" onclick="window.print()">🖨️ طباعة | Print</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Final Report -->
+        <div id="tab4" class="tab-content">
+            <div style="max-width: 210mm; margin: 0 auto; background: white; padding: 20mm; min-height: 297mm;">
+                <!-- Report Header -->
+                <div class="report-logo" id="reportLogoContainer"></div>
+                
+                <div class="report-header">
+                    <h1 id="reportLabName">-</h1>
+                    <div class="standard">ASTM D6913/D6913M-17</div>
+                    <div class="standard">Standard Test Methods for Particle-Size Distribution (Gradation) of Soils Using Sieve Analysis</div>
+                    <div class="standard">الطرق القياسية لتوزيع حجم الجسيمات (التدرج) للتربة باستخدام تحليل المناخل</div>
+                    <div class="report-number">تقرير رقم | Report No.: <span id="reportReportNumber">-</span></div>
+                    <div class="report-number">التاريخ | Date: <span id="reportReportDate">-</span></div>
+                </div>
+
+                <!-- Project Information -->
+                <div class="report-section">
+                    <h2>معلومات المشروع | Project Information</h2>
+                    <div class="report-grid">
+                        <div class="report-item">
+                            <div class="label">المشروع | Project:</div>
+                            <div class="value" id="reportProjectName">-</div>
+                        </div>
+                        <div class="report-item">
+                            <div class="label">رقم المشروع | Project No.:</div>
+                            <div class="value" id="reportProjectNumber">-</div>
+                        </div>
+                        <div class="report-item">
+                            <div class="label">العميل | Client:</div>
+                            <div class="value" id="reportClient">-</div>
+                        </div>
+                        <div class="report-item">
+                            <div class="label">الموقع | Location:</div>
+                            <div class="value" id="reportLocation">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sample Information -->
+                <div class="report-section">
+                    <h2>معلومات العينة | Sample Information</h2>
+                    <div class="report-grid">
+                        <div class="report-item">
+                            <div class="label">رقم العينة | Sample ID:</div>
+                            <div class="value" id="reportSampleId">-</div>
+                        </div>
+                        <div class="report-item">
+                            <div class="label">الوصف | Description:</div>
+                            <div class="value" id="reportSampleDescription">-</div>
+                        </div>
+                        <div class="report-item">
+                            <div class="label">تاريخ الاختبار | Test Date:</div>
+                            <div class="value" id="reportTestDate">-</div>
+                        </div>
+                        <div class="report-item">
+                            <div class="label">وضع الاختبار | Test Mode:</div>
+                            <div class="value" id="reportTestMode">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Configuration -->
+                <div class="report-section">
+                    <h2>إعدادات الاختبار | Test Configuration</h2>
+                    <div class="report-grid">
+                        <div class="report-item">
+                            <div class="label">الطريقة | Method:</div>
+                            <div class="value" id="reportMethod">-</div>
+                        </div>
+                        <div class="report-item">
+                            <div class="label">الحد الأقصى للجسيمات | Max Particle Size:</div>
+                            <div class="value" id="reportMaxParticleSize">-</div>
+                        </div>
+                        <div class="report-item">
+                            <div class="label">كتلة العينة | Specimen Mass:</div>
+                            <div class="value" id="reportSpecimenMass">-</div>
+                        </div>
+                        <div class="report-item">
+                            <div class="label">درجة الحرارة | Temperature:</div>
+                            <div class="value" id="reportTemperature">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Classification Summary -->
+                <div class="report-section">
+                    <h2>ملخص التصنيف | Classification Summary</h2>
+                    <div class="classification-grid">
+                        <div class="class-box gravel">
+                            <h4>الحصى | GRAVEL</h4>
+                            <div class="value" id="reportGravel">-</div>
+                            <div class="label">> 4.75 mm</div>
+                        </div>
+                        <div class="class-box sand">
+                            <h4>الرمل | SAND</h4>
+                            <div class="value" id="reportSand">-</div>
+                            <div class="label">4.75 - 0.075 mm</div>
+                        </div>
+                        <div class="class-box fines">
+                            <h4>السلت والطين | FINES</h4>
+                            <div class="value" id="reportFines">-</div>
+                            <div class="label">< 0.075 mm</div>
+                        </div>
+                    </div>
+                    <div class="classification-grid mt-20">
+                        <div class="class-box uscs">
+                            <h4>USCS</h4>
+                            <div class="value" id="reportUSCS">-</div>
+                            <div class="label" id="reportUSCSDesc">-</div>
+                        </div>
+                        <div class="class-box aashto">
+                            <h4>AASHTO</h4>
+                            <div class="value" id="reportAASHTO">-</div>
+                            <div class="label" id="reportAASHTODesc">-</div>
+                        </div>
+                        <div class="class-box coefficients">
+                            <h4>Cu</h4>
+                            <div class="value" id="reportCu">-</div>
+                            <div class="label">D₆₀/D₁₀</div>
+                        </div>
+                        <div class="class-box coefficients">
+                            <h4>Cc</h4>
+                            <div class="value" id="reportCc">-</div>
+                            <div class="label">D₃₀²/(D₁₀×D₆₀)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gradation Results Table -->
+                <div class="report-section">
+                    <h2>نتائج التدرج | Gradation Results</h2>
+                    <div class="table-container">
+                        <table id="reportGradationTable">
+                            <thead>
+                                <tr>
+                                    <th>المنخل<br>Sieve</th>
+                                    <th>الفتحة (mm)<br>Opening</th>
+                                    <th>% المحجوزة<br>% Retained</th>
+                                    <th>% المحجوزة التراكمية<br>Cumulative %R</th>
+                                    <th>% المارة<br>% Passing</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportGradationTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Gradation Curve -->
+                <div class="report-section">
+                    <h2>منحنى التدرج | Gradation Curve</h2>
+                    <div class="chart-container" style="height: 400px; page-break-inside: avoid;">
+                        <canvas id="reportGradationChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Notes and Remarks -->
+                <div class="report-section">
+                    <h2>ملاحظات | Notes & Remarks</h2>
+                    <div class="alert alert-info">
+                        <p><strong>البيان | Statement:</strong></p>
+                        <p>النتائج محسوبة من البيانات المُدخلة وفقاً لسير العمل المحدد في ASTM D6913. المستخدم مسؤول عن تمثيل العينة، التحضير، الغسل، اختيار المناخل، ومراقبة الجودة المختبرية.</p>
+                        <p>Results are calculated from the entered data in accordance with the selected ASTM D6913 workflow. The user remains responsible for specimen representativeness, preparation, washing, sieve selection, and laboratory quality control.</p>
+                    </div>
+                    <div id="reportAdditionalNotes"></div>
+                </div>
+
+                <!-- Signatures -->
+                <div class="signature-section">
+                    <div class="signature-box">
+                        <div class="title">أعده | Prepared By</div>
+                        <div class="name" id="reportTechnician">-</div>
+                        <div class="line"></div>
+                        <div class="label">التوقيع والتاريخ | Signature & Date</div>
+                    </div>
+                    <div class="signature-box">
+                        <div class="title">راجعه | Reviewed By</div>
+                        <div class="name" id="reportReviewer">-</div>
+                        <div class="line"></div>
+                        <div class="label">التوقيع والتاريخ | Signature & Date</div>
+                    </div>
+                    <div class="signature-box">
+                        <div class="title">اعتمده | Approved By</div>
+                        <div class="name" id="reportApprover">-</div>
+                        <div class="line"></div>
+                        <div class="label">التوقيع والتاريخ | Signature & Date</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto-save indicator -->
+    <div class="save-indicator" id="saveIndicator">💾 تم الحفظ | Saved</div>
+
+    <script>
+        // Global variables
+        let currentTestMode = 'single';
+        let finalResults = [];
+        let chartInstance = null;
+        let reportChartInstance = null;
+
+        // Standard sieves
+        const standardSieves = [
+            { name: '3 in', opening: 75.0, use: true },
+            { name: '2 in', opening: 50.0, use: true },
+            { name: '1.5 in', opening: 37.5, use: true },
+            { name: '1 in', opening: 25.0, use: true },
+            { name: '3/4 in', opening: 19.0, use: true },
+            { name: '3/8 in', opening: 9.5, use: true },
+            { name: 'No. 4', opening: 4.75, use: true },
+            { name: 'No. 10', opening: 2.00, use: true },
+            { name: 'No. 20', opening: 0.850, use: true },
+            { name: 'No. 40', opening: 0.425, use: true },
+            { name: 'No. 60', opening: 0.250, use: true },
+            { name: 'No. 100', opening: 0.150, use: true },
+            { name: 'No. 140', opening: 0.106, use: true },
+            { name: 'No. 200', opening: 0.075, use: true },
+            { name: 'Pan', opening: 0.000, use: true }
+        ];
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSieveTables();
+            initializeDoubleSeparationTables();
+            setDefaultDates();
+            loadFromLocalStorage();
+            updateProgress();
+            calculatePI();
+        });
+
+        // Theme toggle
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            if (chartInstance) {
+                displayFinalResults();
+            }
+            if (reportChartInstance) {
+                generateFinalReport();
+            }
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        // Tab switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+
+            const tabNumber = parseInt(tabId.replace('tab', ''));
+            updateProgress(tabNumber);
+
+            if (tabId === 'tab3') {
+                displayFinalResults();
+            }
+
+            if (tabId === 'tab4') {
+                generateFinalReport();
+            }
+
+            localStorage.setItem('currentTab', tabId);
+        }
+
+        // Update progress indicator
+        function updateProgress(activeTab = 1) {
+            for (let i = 1; i <= 4; i++) {
+                const step = document.getElementById(`progress${i}`);
+                step.classList.remove('active', 'completed');
+                
+                if (i < activeTab) {
+                    step.classList.add('completed');
+                } else if (i === activeTab) {
+                    step.classList.add('active');
+                }
+            }
+        }
+
+        // Test mode selection
+        function selectTestMode(mode) {
+            currentTestMode = mode;
+            
+            document.querySelectorAll('.mode-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            document.getElementById('singleSieveSection').style.display = 
+                mode === 'single' ? 'block' : 'none';
+            document.getElementById('compositeSingleSection').style.display = 
+                mode === 'composite-single' ? 'block' : 'none';
+            document.getElementById('compositeDoubleSection').style.display = 
+                mode === 'composite-double' ? 'block' : 'none';
+
+            autoSave();
+        }
+
+        // MODIFIED: now uses dynamic separating sieve instead of hardcoded 4.75
+        // Data caches to preserve entered values when separating sieve changes
+        const _coarserCmrCache = {};
+        const _finerFcmrCache  = {};
+
+        function initializeSieveTables() {
+            populateSieveTable('single', 'singleSieveTableBody');
+            refreshCompositeTables();
+        }
+
+        function populateSieveTable(tableType, tbodyId) {
+            const tbody = document.getElementById(tbodyId);
+            tbody.innerHTML = '';
+            if (tableType !== 'single') return; // composite handled by refreshCompositeTables
+
+            standardSieves.forEach((sieve, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="checkbox" ${sieve.use ? 'checked' : ''} onchange="autoSave()"></td>
+                    <td>${sieve.name}</td>
+                    <td>${sieve.opening.toFixed(3)}</td>
+                    <td><input type="number" step="0.01" placeholder="0.00" id="single_cmr_${index}" onchange="calculateSingle()"></td>
+                    <td id="single_mr_${index}">-</td>
+                    <td id="single_cpr_${index}">-</td>
+                    <td id="single_pr_${index}">-</td>
+                    <td id="single_pp_${index}">-</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // NEW: refreshCompositeTables — rebuilds coarser + finer tables based on selected separating sieve
+        function refreshCompositeTables() {
+            // Save any already-entered values to cache before clearing
+            document.querySelectorAll('#compCoarserTableBody tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (!cells.length) return;
+                const opening = parseFloat(cells[2].textContent);
+                const input   = cells[3] && cells[3].querySelector('input');
+                if (input && input.value !== '') _coarserCmrCache[opening] = input.value;
+            });
+            document.querySelectorAll('#compFinerTableBody tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (!cells.length) return;
+                const opening = parseFloat(cells[2].textContent);
+                const input   = cells[3] && cells[3].querySelector('input');
+                if (input && input.value !== '') _finerFcmrCache[opening] = input.value;
+            });
+
+            const sepVal = parseFloat(document.getElementById('compSingleSeparatingSieve').value) || 4.75;
+
+            // Rebuild Coarser Portion table (sieves >= separating sieve, plus Pan)
+            const coarserBody = document.getElementById('compCoarserTableBody');
+            coarserBody.innerHTML = '';
+            standardSieves.forEach((sieve, index) => {
+                if (sieve.opening >= sepVal || sieve.name === 'Pan') {
+                    const row = document.createElement('tr');
+                    const cachedVal = _coarserCmrCache[sieve.opening] !== undefined ? _coarserCmrCache[sieve.opening] : '';
+                    row.innerHTML = `
+                        <td><input type="checkbox" checked onchange="autoSave()"></td>
+                        <td>${sieve.name}</td>
+                        <td>${sieve.opening.toFixed(3)}</td>
+                        <td><input type="number" step="0.01" placeholder="0.00"
+                            id="compCoarser_cmr_${index}" value="${cachedVal}"
+                            oninput="calculateCompositeCoarser()"></td>
+                        <td id="compCoarser_mr_${index}">-</td>
+                        <td id="compCoarser_cpr_${index}">-</td>
+                        <td id="compCoarser_pp_${index}">-</td>
+                    `;
+                    coarserBody.appendChild(row);
+                }
+            });
+
+            // Rebuild Finer / Subspecimen table (sieves <= separating sieve, including Pan)
+            const finerBody = document.getElementById('compFinerTableBody');
+            finerBody.innerHTML = '';
+            standardSieves.forEach((sieve, index) => {
+                if (sieve.opening <= sepVal) {
+                    const row = document.createElement('tr');
+                    const cachedVal = _finerFcmrCache[sieve.opening] !== undefined ? _finerFcmrCache[sieve.opening] : '';
+                    row.innerHTML = `
+                        <td><input type="checkbox" checked onchange="autoSave()"></td>
+                        <td>${sieve.name}</td>
+                        <td>${sieve.opening.toFixed(3)}</td>
+                        <td><input type="number" step="0.01" placeholder="0.00"
+                            id="compFiner_fcmr_${index}" value="${cachedVal}"
+                            oninput="calculateCompositeFiner()"></td>
+                        <td id="compFiner_mr_${index}">-</td>
+                        <td id="compFiner_fcp_${index}">-</td>
+                        <td id="compFiner_pp_${index}">-</td>
+                    `;
+                    finerBody.appendChild(row);
+                }
+            });
+
+            // Re-run live calculations if data already present
+            calculateCompositeCoarser();
+        }
+
+        // ============================================================
+        // HELPER FUNCTIONS — fixed finalResults logic
+        // ============================================================
+
+        /**
+         * getActiveRowsFromTable
+         * Reads all checked rows from a tbody and returns an array of objects:
+         * { sieve, opening, inputVal }
+         * inputPrefix: prefix used to find the <td> index of the input (3rd cell = index 3)
+         */
+        function getActiveRowsFromTable(tbodyId) {
+            const tbody = document.getElementById(tbodyId);
+            if (!tbody) return [];
+            const rows = [];
+            tbody.querySelectorAll('tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (!cells.length) return;
+                const checkbox = cells[0].querySelector('input[type="checkbox"]');
+                if (checkbox && !checkbox.checked) return;
+                const sieveName = cells[1] ? cells[1].textContent.trim() : '';
+                const opening   = parseFloat(cells[2] ? cells[2].textContent : '0') || 0;
+                const input     = cells[3] ? cells[3].querySelector('input') : null;
+                const inputVal  = input ? (parseFloat(input.value) || 0) : 0;
+                rows.push({ sieve: sieveName, opening, inputVal });
+            });
+            return rows;
+        }
+
+        /**
+         * normalizeFinalResultRow — ensures every row has all required fields
+         */
+        function normalizeFinalResultRow(row) {
+            return {
+                sieve : row.sieve  || '',
+                opening: row.opening || 0,
+                mr    : row.mr     != null ? row.mr  : 0,
+                cmr   : row.cmr    != null ? row.cmr : 0,
+                pr    : row.pr     != null ? row.pr  : 0,
+                cpr   : row.cpr    != null ? row.cpr : 0,
+                pp    : row.pp     != null ? row.pp  : 100
+            };
+        }
+
+        /**
+         * buildUnifiedFinalResults
+         * Merges multiple result arrays using opening as unique key.
+         * Each entry in `layers` = { rows: [...], governs: [opening1, opening2, ...] }
+         * The first layer that "governs" a certain opening keeps its pp for that opening.
+         */
+        function buildUnifiedFinalResults(layers) {
+            const map = new Map(); // opening → row
+
+            layers.forEach(layer => {
+                layer.rows.forEach(row => {
+                    const key = row.opening;
+                    if (!map.has(key)) {
+                        map.set(key, normalizeFinalResultRow(row));
+                    } else {
+                        // Only update pp if this opening is NOT governed by an earlier layer
+                        const isGoverned = layer.governs && layer.governs.includes(key);
+                        if (!isGoverned) {
+                            const existing = map.get(key);
+                            existing.pp  = row.pp  != null ? row.pp  : existing.pp;
+                            existing.pr  = row.pr  != null ? row.pr  : existing.pr;
+                            existing.cpr = row.cpr != null ? row.cpr : existing.cpr;
+                            existing.mr  = row.mr  != null ? row.mr  : existing.mr;
+                            existing.cmr = row.cmr != null ? row.cmr : existing.cmr;
+                        }
+                    }
+                });
+            });
+
+            // Sort descending by opening (largest sieve first)
+            return Array.from(map.values()).sort((a, b) => b.opening - a.opening);
+        }
+
+        /**
+         * validateFinalResults
+         * Returns an array of warning strings. Empty array = no issues.
+         */
+        function validateFinalResults(results) {
+            const warnings = [];
+            if (!results || results.length === 0) {
+                warnings.push('⚠️ finalResults فارغة — لم يتم حساب أي نتائج بعد.');
+                return warnings;
+            }
+            const has075 = results.some(r => Math.abs(r.opening - 0.075) < 0.001);
+            const has475 = results.some(r => Math.abs(r.opening - 4.75)  < 0.001);
+            if (!has075) warnings.push('⚠️ منخل 0.075 mm (No.200) غير موجود في النتائج — قيمة Fines قد تكون غير دقيقة.');
+            if (!has475) warnings.push('⚠️ منخل 4.75 mm (No.4) غير موجود في النتائج — قيمة Gravel/Sand قد تكون غير دقيقة.');
+
+            // Check monotonic non-increasing pp as opening decreases
+            for (let i = 0; i < results.length - 1; i++) {
+                if (results[i].opening > results[i+1].opening && results[i].pp < results[i+1].pp) {
+                    warnings.push(`⚠️ % Passing غير منتظم: ${results[i].sieve} (${results[i].pp}%) < ${results[i+1].sieve} (${results[i+1].pp}%) — تحقق من البيانات.`);
+                    break;
+                }
+            }
+            return warnings;
+        }
+
+        // ============================================================
+        // Calculate single sieve-set — FIXED
+        // ============================================================
+        function calculateSingle() {
+            const specimenMass = parseFloat(document.getElementById('singleSpecimenMass').value) || 0;
+            
+            if (specimenMass === 0) {
+                alert('الرجاء إدخال الكتلة الجافة للعينة | Please enter dry mass of specimen');
+                return;
+            }
+
+            const method  = document.getElementById('methodSelect').value;
+            const roundTo = method === 'A' ? 1 : 0.1;
+            const decPl   = method === 'A' ? 0 : 1;
+
+            finalResults = [];
+            let previousCMR = 0;
+
+            standardSieves.forEach((sieve, index) => {
+                const cmrInput = document.getElementById(`single_cmr_${index}`);
+                if (!cmrInput) return;
+
+                // Include ALL rows that exist in the table — even if cmr = 0
+                const cmr = parseFloat(cmrInput.value) || 0;
+                const mr  = cmr - previousCMR;
+                const cpr = (cmr / specimenMass) * 100;
+                const pr  = (mr  / specimenMass) * 100;
+                const pp  = 100 - cpr;
+
+                const cprRounded = roundToNearest(cpr, roundTo);
+                const prRounded  = roundToNearest(pr,  roundTo);
+                const ppRounded  = roundToNearest(pp,  roundTo);
+
+                const mrCell  = document.getElementById(`single_mr_${index}`);
+                const cprCell = document.getElementById(`single_cpr_${index}`);
+                const prCell  = document.getElementById(`single_pr_${index}`);
+                const ppCell  = document.getElementById(`single_pp_${index}`);
+
+                if (mrCell)  mrCell.textContent  = mr.toFixed(2);
+                if (cprCell) cprCell.textContent = cprRounded.toFixed(decPl);
+                if (prCell)  prCell.textContent  = prRounded.toFixed(decPl);
+                if (ppCell)  ppCell.textContent  = ppRounded.toFixed(decPl);
+
+                // Push ALL active sieves — no zero-filter
+                finalResults.push(normalizeFinalResultRow({
+                    sieve   : sieve.name,
+                    opening : sieve.opening,
+                    mr      : mr,
+                    cmr     : cmr,
+                    pr      : prRounded,
+                    cpr     : cprRounded,
+                    pp      : ppRounded
+                }));
+
+                previousCMR = cmr;
+            });
+
+            autoSave();
+            alert('✅ تم الحساب بنجاح | Calculation completed successfully');
+        }
+
+        // Calculate composite single separation — FIXED
+        function calculateCompositeSingle() {
+            const cpMd  = parseFloat(document.getElementById('compCoarserMass').value)       || 0;
+            const fpMm  = parseFloat(document.getElementById('compFinerMoistMass').value)     || 0;
+            const wfp   = parseFloat(document.getElementById('compFinerWaterContent').value)  || 0;
+            const subsMd= parseFloat(document.getElementById('compSubspecimenMass').value)    || 0;
+            const cpwMd = parseFloat(document.getElementById('compCoarserWashedMass').value)  || 0;
+            const cpPan = parseFloat(document.getElementById('compCoarserPanMass').value)     || 0;
+            const separatingSieve = parseFloat(document.getElementById('compSingleSeparatingSieve').value);
+
+            if (cpMd === 0 || subsMd === 0) {
+                alert('الرجاء إدخال الكتل المطلوبة | Please enter required masses');
+                return;
+            }
+
+            const fpMd   = fpMm / (1 + wfp / 100);
+            const sMd    = cpMd + fpMd;
+            const method = document.getElementById('methodSelect').value;
+            const roundTo= method === 'A' ? 1 : 0.1;
+            const decPl  = method === 'A' ? 0 : 1;
+
+            // ---- Coarser portion (all active rows, no zero-filter) ----
+            let previousCMR = 0;
+            let cscf = 100;
+            const coarserResults = [];
+
+            standardSieves.forEach((sieve, index) => {
+                const cmrInput = document.getElementById(`compCoarser_cmr_${index}`);
+                if (!cmrInput) return;
+
+                const cmr = parseFloat(cmrInput.value) || 0;
+                const mr  = cmr - previousCMR;
+                const cpr = sMd > 0 ? (cmr / sMd) * 100 : 0;
+                const pr  = sMd > 0 ? (mr  / sMd) * 100 : 0;
+                const pp  = 100 - cpr;
+
+                const cprRounded = roundToNearest(cpr, roundTo);
+                const prRounded  = roundToNearest(pr,  roundTo);
+                const ppRounded  = roundToNearest(pp,  roundTo);
+
+                const mrCell  = document.getElementById(`compCoarser_mr_${index}`);
+                const cprCell = document.getElementById(`compCoarser_cpr_${index}`);
+                const ppCell  = document.getElementById(`compCoarser_pp_${index}`);
+                if (mrCell)  mrCell.textContent  = mr.toFixed(2);
+                if (cprCell) cprCell.textContent = cprRounded.toFixed(decPl);
+                if (ppCell)  ppCell.textContent  = ppRounded.toFixed(decPl);
+
+                if (Math.abs(sieve.opening - separatingSieve) < 0.001) {
+                    cscf = ppRounded;
+                }
+
+                // Include ALL rows — no zero-filter
+                coarserResults.push(normalizeFinalResultRow({
+                    sieve: sieve.name, opening: sieve.opening,
+                    mr: mr, cmr: cmr, pr: prRounded, cpr: cprRounded, pp: ppRounded
+                }));
+
+                previousCMR = cmr;
+            });
+
+            document.getElementById('cscfDisplay').style.display = 'block';
+            document.getElementById('cscfValue').textContent = cscf.toFixed(2) + '%';
+
+            // ---- Finer portion (all active rows, no zero-filter) ----
+            previousCMR = 0;
+            const finerResults = [];
+
+            standardSieves.forEach((sieve, index) => {
+                const fcmrInput = document.getElementById(`compFiner_fcmr_${index}`);
+                if (!fcmrInput) return;
+
+                const fcmr    = parseFloat(fcmrInput.value) || 0;
+                const mr      = fcmr - previousCMR;
+                const fcp     = subsMd > 0 ? (fcmr / subsMd) * 100 : 0;
+                const finalPP = cscf * (1 - (subsMd > 0 ? fcmr / subsMd : 0));
+
+                const fcpRounded     = roundToNearest(fcp,     roundTo);
+                const finalPPRounded = roundToNearest(finalPP, roundTo);
+
+                const mrCell  = document.getElementById(`compFiner_mr_${index}`);
+                const fcpCell = document.getElementById(`compFiner_fcp_${index}`);
+                const ppCell  = document.getElementById(`compFiner_pp_${index}`);
+                if (mrCell)  mrCell.textContent  = mr.toFixed(2);
+                if (fcpCell) fcpCell.textContent = fcpRounded.toFixed(decPl);
+                if (ppCell)  ppCell.textContent  = finalPPRounded.toFixed(decPl);
+
+                // Include ALL rows — no zero-filter
+                finerResults.push(normalizeFinalResultRow({
+                    sieve: sieve.name, opening: sieve.opening,
+                    mr: mr, cmr: fcmr, pr: fcpRounded, cpr: fcpRounded, pp: finalPPRounded
+                }));
+
+                previousCMR = fcmr;
+            });
+
+            // CPL check
+            if (cpwMd > 0 && sMd > 0) {
+                const cpl = 100 * (cpMd - cpwMd + cpPan) / sMd;
+                const cplWarning = document.getElementById('cplWarning');
+                const cplMessage = document.getElementById('cplMessage');
+                if (cpl > 0.5) {
+                    if (cplWarning) { cplWarning.style.display = 'block'; cplWarning.className = 'alert alert-danger mt-20'; }
+                    if (cplMessage) cplMessage.textContent = `CPL = ${cpl.toFixed(2)}% > 0.5% (غير مقبول | Not acceptable)`;
+                } else {
+                    if (cplWarning) { cplWarning.style.display = 'block'; cplWarning.className = 'alert alert-success mt-20'; }
+                    if (cplMessage) cplMessage.textContent = `CPL = ${cpl.toFixed(2)}% ≤ 0.5% (مقبول | Acceptable)`;
+                }
+            }
+
+            // ---- Merge using buildUnifiedFinalResults ----
+            // coarserResults governs at separatingSieve
+            // finerResults governs all finer sieves (not separatingSieve)
+            finalResults = buildUnifiedFinalResults([
+                { rows: coarserResults, governs: [] },          // layer 1: coarser sets base
+                { rows: finerResults,   governs: [separatingSieve] } // layer 2: finer updates pp EXCEPT at sep sieve
+            ]);
+
+            autoSave();
+            alert('✅ تم الحساب المركب بنجاح | Composite calculation completed successfully');
+        }
+
+        // REPLACED: was placeholder, now real calculation
+        // Global store for CSCF used by calculateCompositeFiner
+        let _compositeCscf = 100;
+
+        function calculateCompositeCoarser() {
+            const cpMd      = parseFloat(document.getElementById('compCoarserMass').value)       || 0;
+            const fpMm      = parseFloat(document.getElementById('compFinerMoistMass').value)     || 0;
+            const wfp       = parseFloat(document.getElementById('compFinerWaterContent').value)  || 0;
+            const cpwMd     = parseFloat(document.getElementById('compCoarserWashedMass').value)  || 0;
+            const cpPan     = parseFloat(document.getElementById('compCoarserPanMass').value)     || 0;
+            const separatingSieve = parseFloat(document.getElementById('compSingleSeparatingSieve').value);
+
+            if (cpMd === 0) { autoSave(); return; }
+
+            const fpMd  = wfp > 0 ? fpMm / (1 + wfp / 100) : fpMm;
+            const sMd   = cpMd + fpMd;
+
+            const method  = document.getElementById('methodSelect').value;
+            const roundTo = method === 'A' ? 1 : 0.1;
+            const decPl   = method === 'A' ? 0 : 1;
+
+            let previousCMR = 0;
+            let cscf = 100;
+
+            const tbody = document.getElementById('compCoarserTableBody');
+            const rows  = tbody.querySelectorAll('tr');
+
+            rows.forEach(row => {
+                const cells  = row.querySelectorAll('td');
+                if (!cells.length) return;
+
+                const checkbox = cells[0].querySelector('input[type="checkbox"]');
+                if (checkbox && !checkbox.checked) return;
+
+                // opening stored in 3rd cell text
+                const opening  = parseFloat(cells[2].textContent);
+                const cmrInput = cells[3].querySelector('input');
+                if (!cmrInput) return;
+
+                const cmr = parseFloat(cmrInput.value) || 0;
+                const mr  = cmr - previousCMR;
+
+                const cpr = sMd > 0 ? (cmr / sMd) * 100 : 0;
+                const pp  = 100 - cpr;
+
+                const cprRounded = roundToNearest(cpr, roundTo);
+                const ppRounded  = roundToNearest(pp, roundTo);
+                const mrRounded  = mr;
+
+                // Write to read-only cells: MR (4), CPR (5), PP (6)
+                if (cells[4]) cells[4].textContent = mrRounded.toFixed(2);
+                if (cells[5]) cells[5].textContent = cprRounded.toFixed(decPl);
+                if (cells[6]) cells[6].textContent = ppRounded.toFixed(decPl);
+
+                // Detect separating sieve by comparing openings with tolerance
+                if (Math.abs(opening - separatingSieve) < 0.001) {
+                    cscf = ppRounded;
+                }
+
+                previousCMR = cmr;
+            });
+
+            // Store CSCF for finer calculation
+            _compositeCscf = cscf;
+
+            // Show CSCF
+            const cscfDisplay = document.getElementById('cscfDisplay');
+            const cscfValue   = document.getElementById('cscfValue');
+            if (cscfDisplay && cscfValue) {
+                cscfDisplay.style.display = 'block';
+                cscfValue.textContent = cscf.toFixed(2) + '%';
+            }
+
+            // CPL check
+            const cplWarning = document.getElementById('cplWarning');
+            const cplMessage = document.getElementById('cplMessage');
+            if (cpwMd > 0 && sMd > 0) {
+                const cpl = 100 * (cpMd - cpwMd + cpPan) / sMd;
+                if (cpl > 0.5) {
+                    if (cplWarning) {
+                        cplWarning.style.display = 'block';
+                        cplWarning.className = 'alert alert-danger mt-20';
+                    }
+                    if (cplMessage) cplMessage.textContent = `CPL = ${cpl.toFixed(2)}% > 0.5% (غير مقبول | Not acceptable)`;
+                } else {
+                    if (cplWarning) {
+                        cplWarning.style.display = 'block';
+                        cplWarning.className = 'alert alert-success mt-20';
+                    }
+                    if (cplMessage) cplMessage.textContent = `CPL = ${cpl.toFixed(2)}% ≤ 0.5% (مقبول | Acceptable)`;
+                }
+            }
+
+            // Cascade into finer table
+            calculateCompositeFiner();
+            autoSave();
+        }
+
+        // REPLACED: was placeholder, now real calculation
+        function calculateCompositeFiner() {
+            const subsMd = parseFloat(document.getElementById('compSubspecimenMass').value) || 0;
+            const cscf   = _compositeCscf;
+
+            if (subsMd === 0) { autoSave(); return; }
+
+            const method  = document.getElementById('methodSelect').value;
+            const roundTo = method === 'A' ? 1 : 0.1;
+            const decPl   = method === 'A' ? 0 : 1;
+
+            let previousFCMR  = 0;
+            let firstRowMR    = null;
+
+            const tbody = document.getElementById('compFinerTableBody');
+            const rows  = tbody.querySelectorAll('tr');
+
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (!cells.length) return;
+
+                const checkbox = cells[0].querySelector('input[type="checkbox"]');
+                if (checkbox && !checkbox.checked) return;
+
+                const fcmrInput = cells[3].querySelector('input');
+                if (!fcmrInput) return;
+
+                const fcmr = parseFloat(fcmrInput.value) || 0;
+                const mr   = fcmr - previousFCMR;
+
+                if (firstRowMR === null) firstRowMR = mr;
+
+                const fcp     = subsMd > 0 ? (fcmr / subsMd) * 100 : 0;
+                const finalPP = cscf * (1 - fcmr / subsMd);
+
+                const fcpRounded    = roundToNearest(fcp, roundTo);
+                const finalPPRounded = roundToNearest(finalPP, roundTo);
+
+                // Write to read-only cells: MR (4), FCP (5), FinalPP (6)
+                if (cells[4]) cells[4].textContent = mr.toFixed(2);
+                if (cells[5]) cells[5].textContent = fcpRounded.toFixed(decPl);
+                if (cells[6]) cells[6].textContent = finalPPRounded.toFixed(decPl);
+
+                previousFCMR = fcmr;
+            });
+
+            // Warning: retained on first finer sieve > 2%
+            let finerWarn = document.getElementById('compFinerFirstRowWarning');
+            if (!finerWarn) {
+                finerWarn = document.createElement('div');
+                finerWarn.id = 'compFinerFirstRowWarning';
+                finerWarn.className = 'alert alert-warning mt-20';
+                const cplEl = document.getElementById('cplWarning');
+                if (cplEl && cplEl.parentNode) {
+                    cplEl.parentNode.insertBefore(finerWarn, cplEl.nextSibling);
+                }
+            }
+            if (firstRowMR !== null && subsMd > 0) {
+                const pctFirstRow = (firstRowMR / subsMd) * 100;
+                if (pctFirstRow > 2) {
+                    finerWarn.style.display = 'block';
+                    finerWarn.textContent = `⚠️ Warning: Retained on first finer sieve = ${pctFirstRow.toFixed(1)}% > 2% — Check subspecimen size (ASTM D6913)`;
+                } else {
+                    finerWarn.style.display = 'none';
+                }
+            } else {
+                finerWarn.style.display = 'none';
+            }
+
+            autoSave();
+        }
+
+        // MODIFIED: Initialize Double Separation Tables — dynamic based on selected sieves
+        const _double1stCmrCache  = {};
+        const _double2ndCpCache   = {};
+        const _double2ndSubsCache = {};
+
+        function initializeDoubleSeparationTables() {
+            refreshDoubleTables();
+        }
+
+        // NEW: refreshDoubleTables — rebuilds all three double-separation tables dynamically
+        function refreshDoubleTables() {
+            const tbody1stCoarser = document.getElementById('double1stCoarserTableBody');
+            const tbody2ndCoarser = document.getElementById('double2ndCoarserTableBody');
+            const tbody2ndSubS    = document.getElementById('double2ndSubSTableBody');
+
+            if (!tbody1stCoarser || !tbody2ndCoarser || !tbody2ndSubS) {
+                setTimeout(refreshDoubleTables, 100);
+                return;
+            }
+
+            // Save entered values to cache before clearing
+            tbody1stCoarser.querySelectorAll('tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (!cells.length) return;
+                const op = parseFloat(cells[2].textContent);
+                const inp = cells[3] && cells[3].querySelector('input');
+                if (inp && inp.value !== '') _double1stCmrCache[op] = inp.value;
+            });
+            tbody2ndCoarser.querySelectorAll('tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (!cells.length) return;
+                const op = parseFloat(cells[2].textContent);
+                const inp = cells[3] && cells[3].querySelector('input');
+                if (inp && inp.value !== '') _double2ndCpCache[op] = inp.value;
+            });
+            tbody2ndSubS.querySelectorAll('tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (!cells.length) return;
+                const op = parseFloat(cells[2].textContent);
+                const inp = cells[3] && cells[3].querySelector('input');
+                if (inp && inp.value !== '') _double2ndSubsCache[op] = inp.value;
+            });
+
+            const sep1 = parseFloat(document.getElementById('compDouble1stSieve').value) || 19.0;
+            const sep2 = parseFloat(document.getElementById('compDouble2ndSieve').value) || 4.75;
+
+            // 1st Coarser Portion: sieves >= sep1 (+ Pan)
+            tbody1stCoarser.innerHTML = '';
+            standardSieves.forEach((sieve, index) => {
+                if (sieve.opening >= sep1 || sieve.name === 'Pan') {
+                    const row = tbody1stCoarser.insertRow();
+                    const v = _double1stCmrCache[sieve.opening] !== undefined ? _double1stCmrCache[sieve.opening] : '';
+                    row.innerHTML = `
+                        <td><input type="checkbox" checked onchange="autoSave()"></td>
+                        <td>${sieve.name}</td>
+                        <td>${sieve.opening.toFixed(3)}</td>
+                        <td><input type="number" step="0.01" placeholder="0.00" id="double1stCP_cmr_${index}" value="${v}" oninput="autoSave(); calculateDoubleComposite()"></td>
+                        <td id="double1stCP_mr_${index}">-</td>
+                        <td id="double1stCP_cpr_${index}">-</td>
+                        <td id="double1stCP_pr_${index}">-</td>
+                        <td id="double1stCP_pp_${index}">-</td>
+                    `;
+                }
+            });
+
+            // 2nd Coarser Portion: sieves between sep2 and sep1 (inclusive on both ends)
+            tbody2ndCoarser.innerHTML = '';
+            standardSieves.forEach((sieve, index) => {
+                if (sieve.opening >= sep2 && sieve.opening <= sep1) {
+                    const row = tbody2ndCoarser.insertRow();
+                    const v = _double2ndCpCache[sieve.opening] !== undefined ? _double2ndCpCache[sieve.opening] : '';
+                    row.innerHTML = `
+                        <td><input type="checkbox" checked onchange="autoSave()"></td>
+                        <td>${sieve.name}</td>
+                        <td>${sieve.opening.toFixed(3)}</td>
+                        <td><input type="number" step="0.01" placeholder="0.00" id="double2ndCP_fcmr_${index}" value="${v}" oninput="autoSave(); calculateDoubleComposite()"></td>
+                        <td id="double2ndCP_mr_${index}">-</td>
+                        <td id="double2ndCP_fcp_${index}">-</td>
+                        <td id="double2ndCP_pp_${index}">-</td>
+                    `;
+                }
+            });
+
+            // 2nd Subspecimen: sieves <= sep2 (including Pan)
+            tbody2ndSubS.innerHTML = '';
+            standardSieves.forEach((sieve, index) => {
+                if (sieve.opening <= sep2) {
+                    const row = tbody2ndSubS.insertRow();
+                    const v = _double2ndSubsCache[sieve.opening] !== undefined ? _double2ndSubsCache[sieve.opening] : '';
+                    row.innerHTML = `
+                        <td><input type="checkbox" checked onchange="autoSave()"></td>
+                        <td>${sieve.name}</td>
+                        <td>${sieve.opening.toFixed(3)}</td>
+                        <td><input type="number" step="0.01" placeholder="0.00" id="double2ndSubS_fcmr_${index}" value="${v}" oninput="autoSave(); calculateDoubleComposite()"></td>
+                        <td id="double2ndSubS_mr_${index}">-</td>
+                        <td id="double2ndSubS_fcp_${index}">-</td>
+                        <td id="double2ndSubS_pp_${index}">-</td>
+                    `;
+                }
+            });
+
+            calculateDoubleComposite();
+        }
+
+        // Calculate Double Composite Separation — FIXED
+        function calculateDoubleComposite() {
+            const double1stCPMd    = parseFloat(document.getElementById('double1stCPMd').value)    || 0;
+            const double1stFPMm    = parseFloat(document.getElementById('double1stFPMm').value)    || 0;
+            const double1stFPw     = parseFloat(document.getElementById('double1stFPw').value)     || 0;
+            const double1stSubSMd  = parseFloat(document.getElementById('double1stSubSMd').value)  || 0;
+            const double2ndCPMd    = parseFloat(document.getElementById('double2ndCPMd').value)    || 0;
+            const double2ndCPwMd   = parseFloat(document.getElementById('double2ndCPwMd').value)   || 0;
+            const double2ndCPMRpan = parseFloat(document.getElementById('double2ndCPMRpan').value) || 0;
+            const double2ndSubSMd  = parseFloat(document.getElementById('double2ndSubSMd').value)  || 0;
+            const separatingSieve1st = parseFloat(document.getElementById('compDouble1stSieve').value);
+            const separatingSieve2nd = parseFloat(document.getElementById('compDouble2ndSieve').value);
+
+            if (double1stCPMd === 0 || double1stSubSMd === 0) {
+                return;
+            }
+
+            const method  = document.getElementById('methodSelect').value;
+            const roundTo = method === 'A' ? 1 : 0.1;
+            const decPl   = method === 'A' ? 0 : 1;
+
+            const double1stFPMd = double1stFPMm / (1 + double1stFPw / 100);
+            const totalSMd = double1stCPMd + double1stFPMd;
+
+            document.getElementById('double1stTotalMass').textContent = totalSMd.toFixed(2);
+
+            // ========== 1st Coarser Portion — ALL active rows ==========
+            let previousCMR = 0;
+            let cscf1st = 100;
+            const results1stCoarser = [];
+
+            standardSieves.forEach((sieve, index) => {
+                const cmrInput = document.getElementById(`double1stCP_cmr_${index}`);
+                if (!cmrInput) return;
+
+                const cmr = parseFloat(cmrInput.value) || 0;
+                const mr  = cmr - previousCMR;
+                const cpr = totalSMd > 0 ? (cmr / totalSMd) * 100 : 0;
+                const pr  = totalSMd > 0 ? (mr  / totalSMd) * 100 : 0;
+                const pp  = 100 - cpr;
+
+                const cprRounded = roundToNearest(cpr, roundTo);
+                const prRounded  = roundToNearest(pr,  roundTo);
+                const ppRounded  = roundToNearest(pp,  roundTo);
+
+                const mrCell  = document.getElementById(`double1stCP_mr_${index}`);
+                const cprCell = document.getElementById(`double1stCP_cpr_${index}`);
+                const prCell  = document.getElementById(`double1stCP_pr_${index}`);
+                const ppCell  = document.getElementById(`double1stCP_pp_${index}`);
+                if (mrCell)  mrCell.textContent  = mr.toFixed(2);
+                if (cprCell) cprCell.textContent = cprRounded.toFixed(decPl);
+                if (prCell)  prCell.textContent  = prRounded.toFixed(decPl);
+                if (ppCell)  ppCell.textContent  = ppRounded.toFixed(decPl);
+
+                if (Math.abs(sieve.opening - separatingSieve1st) < 0.001) {
+                    cscf1st = ppRounded;
+                }
+
+                // ALL rows — no zero-filter
+                results1stCoarser.push(normalizeFinalResultRow({
+                    sieve: sieve.name, opening: sieve.opening,
+                    mr: mr, cmr: cmr, pr: prRounded, cpr: cprRounded, pp: ppRounded
+                }));
+
+                previousCMR = cmr;
+            });
+
+            // ========== 2nd Coarser Portion — ALL active rows ==========
+            if (double2ndCPMd > 0 && double1stSubSMd > 0) {
+                previousCMR = 0;
+                let cscf2nd = cscf1st;
+                const results2ndCoarser = [];
+
+                standardSieves.forEach((sieve, index) => {
+                    const fcmrInput = document.getElementById(`double2ndCP_fcmr_${index}`);
+                    if (!fcmrInput) return;
+
+                    const fcmr    = parseFloat(fcmrInput.value) || 0;
+                    const mr      = fcmr - previousCMR;
+                    const fcp     = double1stSubSMd > 0 ? (fcmr / double1stSubSMd) * 100 : 0;
+                    const finalPP = cscf1st * (1 - (double1stSubSMd > 0 ? fcmr / double1stSubSMd : 0));
+
+                    const fcpRounded     = roundToNearest(fcp,     roundTo);
+                    const finalPPRounded = roundToNearest(finalPP, roundTo);
+
+                    const mrCell  = document.getElementById(`double2ndCP_mr_${index}`);
+                    const fcpCell = document.getElementById(`double2ndCP_fcp_${index}`);
+                    const ppCell  = document.getElementById(`double2ndCP_pp_${index}`);
+                    if (mrCell)  mrCell.textContent  = mr.toFixed(2);
+                    if (fcpCell) fcpCell.textContent = fcpRounded.toFixed(decPl);
+                    if (ppCell)  ppCell.textContent  = finalPPRounded.toFixed(decPl);
+
+                    if (Math.abs(sieve.opening - separatingSieve2nd) < 0.001) {
+                        cscf2nd = finalPPRounded;
+                    }
+
+                    // ALL rows — no zero-filter
+                    results2ndCoarser.push(normalizeFinalResultRow({
+                        sieve: sieve.name, opening: sieve.opening,
+                        mr: mr, cmr: fcmr, pr: fcpRounded, cpr: fcpRounded, pp: finalPPRounded
+                    }));
+
+                    previousCMR = fcmr;
+                });
+
+                // ========== 2nd Subspecimen — ALL active rows ==========
+                if (double2ndSubSMd > 0) {
+                    previousCMR = 0;
+                    const results2ndSubS = [];
+
+                    standardSieves.forEach((sieve, index) => {
+                        const fcmrInput = document.getElementById(`double2ndSubS_fcmr_${index}`);
+                        if (!fcmrInput) return;
+
+                        const fcmr    = parseFloat(fcmrInput.value) || 0;
+                        const mr      = fcmr - previousCMR;
+                        const fcp     = double2ndSubSMd > 0 ? (fcmr / double2ndSubSMd) * 100 : 0;
+                        const finalPP = cscf2nd * (1 - (double2ndSubSMd > 0 ? fcmr / double2ndSubSMd : 0));
+
+                        const fcpRounded     = roundToNearest(fcp,     roundTo);
+                        const finalPPRounded = roundToNearest(finalPP, roundTo);
+
+                        const mrCell  = document.getElementById(`double2ndSubS_mr_${index}`);
+                        const fcpCell = document.getElementById(`double2ndSubS_fcp_${index}`);
+                        const ppCell  = document.getElementById(`double2ndSubS_pp_${index}`);
+                        if (mrCell)  mrCell.textContent  = mr.toFixed(2);
+                        if (fcpCell) fcpCell.textContent = fcpRounded.toFixed(decPl);
+                        if (ppCell)  ppCell.textContent  = finalPPRounded.toFixed(decPl);
+
+                        // ALL rows — no zero-filter
+                        results2ndSubS.push(normalizeFinalResultRow({
+                            sieve: sieve.name, opening: sieve.opening,
+                            mr: mr, cmr: fcmr, pr: fcpRounded, cpr: fcpRounded, pp: finalPPRounded
+                        }));
+
+                        previousCMR = fcmr;
+                    });
+
+                    // ---- Unified merge: 1stCoarser governs at sep1
+                    //      2ndCoarser governs at sep1 (keep 1st) and sets pp for sep2
+                    //      2ndSubS governs below sep2
+                    finalResults = buildUnifiedFinalResults([
+                        { rows: results1stCoarser, governs: [] },
+                        { rows: results2ndCoarser, governs: [separatingSieve1st] },
+                        { rows: results2ndSubS,    governs: [separatingSieve1st, separatingSieve2nd] }
+                    ]);
+                }
+
+                // Display CSCF values
+                document.getElementById('doubleCscfDisplay').style.display = 'block';
+                document.getElementById('double1stCscfValue').textContent = cscf1st.toFixed(2);
+                document.getElementById('double2ndCscfValue').textContent = cscf2nd.toFixed(2);
+
+                // Calculate 2nd CPL
+                if (double2ndCPwMd > 0) {
+                    const cpl2nd = 100 * (double2ndCPMd - double2ndCPwMd + double2ndCPMRpan) / double1stSubSMd;
+                    const cplWarning = document.getElementById('doubleCplWarning');
+                    const cplMessage = document.getElementById('doubleCplMessage');
+                    if (cpl2nd > 0.5) {
+                        cplWarning.className = 'alert alert-danger mt-20';
+                        cplWarning.style.display = 'block';
+                        cplMessage.innerHTML = `⚠️ <strong>تحذير | Warning:</strong> 2nd CPL = ${cpl2nd.toFixed(2)}% > 0.5% (غير مقبول | Not acceptable)`;
+                    } else {
+                        cplWarning.className = 'alert alert-success mt-20';
+                        cplWarning.style.display = 'block';
+                        cplMessage.innerHTML = `✅ <strong>مقبول | Acceptable:</strong> 2nd CPL = ${cpl2nd.toFixed(2)}% ≤ 0.5%`;
+                    }
+                }
+            }
+
+            autoSave();
+        }
+
+        // Helper function for rounding
+        function roundToNearest(value, precision) {
+            return Math.round(value / precision) * precision;
+        }
+
+        // Calculate Plasticity Index
+        function calculatePI() {
+            const ll = parseFloat(document.getElementById('liquidLimit').value) || 0;
+            const pl = parseFloat(document.getElementById('plasticLimit').value) || 0;
+            const pi = ll > 0 && pl > 0 ? ll - pl : 0;
+            document.getElementById('plasticityIndex').value = pi > 0 ? pi.toFixed(1) : '';
+        }
+
+        // Update PI when LL or PL changes
+        document.getElementById('liquidLimit').addEventListener('input', calculatePI);
+        document.getElementById('plasticLimit').addEventListener('input', calculatePI);
+
+        // Display final results — FIXED
+        function displayFinalResults() {
+            const warningsEl = document.getElementById('resultsWarnings');
+
+            if (finalResults.length === 0) {
+                warningsEl.innerHTML = 
+                    '<div class="alert alert-warning">⚠️ لم يتم حساب النتائج بعد. الرجاء إدخال البيانات والحساب في التبويب السابق.<br>No results calculated yet. Please enter data and calculate in the previous tab.</div>';
+                return;
+            }
+
+            // Validate and show any structural warnings
+            const validationWarnings = validateFinalResults(finalResults);
+            if (validationWarnings.length > 0) {
+                warningsEl.innerHTML =
+                    '<div class="alert alert-warning">' +
+                    validationWarnings.join('<br>') +
+                    '</div>';
+            } else {
+                warningsEl.innerHTML =
+                    '<div class="alert alert-success">✅ تم حساب النتائج بنجاح | Results calculated successfully</div>';
+            }
+
+            // Fraction percentages — look up with tolerance
+            const finesRow  = finalResults.find(r => Math.abs(r.opening - 0.075) < 0.001);
+            const no4Row    = finalResults.find(r => Math.abs(r.opening - 4.75)  < 0.001);
+
+            let finesWarn = '';
+            let no4Warn   = '';
+
+            const fines = finesRow ? finesRow.pp : (() => { finesWarn = ' (⚠️ No 0.075mm sieve — fallback 0%)'; return 0; })();
+            const no4   = no4Row   ? no4Row.pp   : (() => { no4Warn   = ' (⚠️ No 4.75mm sieve — fallback 100%)'; return 100; })();
+
+            const gravel = 100 - no4;
+            const sand   = no4 - fines;
+
+            document.getElementById('gravelPercent').textContent = gravel.toFixed(1) + '%' + no4Warn;
+            document.getElementById('sandPercent').textContent   = sand.toFixed(1)   + '%';
+            document.getElementById('finesPercent').textContent  = fines.toFixed(1)  + '%' + finesWarn;
+
+            // D-values and coefficients
+            const d10 = interpolateDValue(10);
+            const d30 = interpolateDValue(30);
+            const d60 = interpolateDValue(60);
+
+            document.getElementById('d10Value').textContent = d10 > 0 ? d10.toFixed(3) : 'N/A';
+            document.getElementById('d30Value').textContent = d30 > 0 ? d30.toFixed(3) : 'N/A';
+            document.getElementById('d60Value').textContent = d60 > 0 ? d60.toFixed(3) : 'N/A';
+
+            const cu = d10 > 0 && d60 > 0 ? d60 / d10 : 0;
+            const cc = d10 > 0 && d30 > 0 && d60 > 0 ? (d30 * d30) / (d10 * d60) : 0;
+
+            document.getElementById('cuValue').textContent = cu > 0 ? cu.toFixed(2) : 'N/A';
+            document.getElementById('ccValue').textContent = cc > 0 ? cc.toFixed(2) : 'N/A';
+
+            // Classification
+            const ll = parseFloat(document.getElementById('liquidLimit').value) || 0;
+            const pi = parseFloat(document.getElementById('plasticityIndex').value) || 0;
+
+            const uscsResult   = classifyUSCS(gravel, sand, fines, ll, pi, cu, cc);
+            const aashtoResult = classifyAASHTO(gravel, sand, fines, ll, pi);
+
+            document.getElementById('uscsClass').textContent       = uscsResult.symbol;
+            document.getElementById('uscsDescription').textContent = uscsResult.description;
+            document.getElementById('aashtoClass').textContent      = aashtoResult.group;
+            document.getElementById('aashtoDescription').textContent= aashtoResult.description;
+
+            // Final Gradation Table — ALL rows, no zero-filter
+            const tbody = document.getElementById('finalResultsTableBody');
+            tbody.innerHTML = '';
+
+            let cumMR = 0;
+            finalResults.forEach(result => {
+                cumMR += (result.mr || 0);
+                const row = tbody.insertRow();
+                // pr and cpr may not exist on composite rows — handle gracefully
+                const prVal  = result.pr  != null ? result.pr.toFixed(1)  : '—';
+                const cprVal = result.cpr != null ? result.cpr.toFixed(1) : '—';
+                row.innerHTML = `
+                    <td>${result.sieve}</td>
+                    <td>${result.opening.toFixed(3)}</td>
+                    <td>${(result.mr || 0).toFixed(2)}</td>
+                    <td>${cumMR.toFixed(2)}</td>
+                    <td>${prVal}</td>
+                    <td>${cprVal}</td>
+                    <td><strong>${result.pp.toFixed(1)}</strong></td>
+                `;
+            });
+
+            updateGradationChart();
+        }
+
+        // Interpolate D-value
+        function interpolateDValue(percentPassing) {
+            for (let i = 0; i < finalResults.length - 1; i++) {
+                const current = finalResults[i];
+                const next = finalResults[i + 1];
+
+                if (current.pp >= percentPassing && next.pp <= percentPassing) {
+                    // Linear interpolation on log scale
+                    const logD1 = Math.log10(current.opening);
+                    const logD2 = Math.log10(next.opening);
+                    const p1 = current.pp;
+                    const p2 = next.pp;
+
+                    const logD = logD1 + (percentPassing - p1) * (logD2 - logD1) / (p2 - p1);
+                    return Math.pow(10, logD);
+                }
+            }
+            return 0;
+        }
+
+        // USCS Classification
+        function classifyUSCS(gravel, sand, fines, ll, pi, cu, cc) {
+            let symbol = '';
+            let description = '';
+
+            if (fines < 5) {
+                // Coarse-grained soil
+                if (gravel > sand) {
+                    // Gravel
+                    if (cu >= 4 && cc >= 1 && cc <= 3) {
+                        symbol = 'GW';
+                        description = 'Well-graded gravel | حصى متدرج جيداً';
+                    } else {
+                        symbol = 'GP';
+                        description = 'Poorly-graded gravel | حصى متدرج سيئاً';
+                    }
+                } else {
+                    // Sand
+                    if (cu >= 6 && cc >= 1 && cc <= 3) {
+                        symbol = 'SW';
+                        description = 'Well-graded sand | رمل متدرج جيداً';
+                    } else {
+                        symbol = 'SP';
+                        description = 'Poorly-graded sand | رمل متدرج سيئاً';
+                    }
+                }
+            } else if (fines >= 5 && fines <= 12) {
+                // Borderline
+                if (gravel > sand) {
+                    symbol = 'GW-GM/GW-GC/GP-GM/GP-GC';
+                    description = 'Gravel with fines | حصى مع جزيئات دقيقة';
+                } else {
+                    symbol = 'SW-SM/SW-SC/SP-SM/SP-SC';
+                    description = 'Sand with fines | رمل مع جزيئات دقيقة';
+                }
+            } else {
+                // Fine-grained soil
+                if (ll > 0 && pi > 0) {
+                    if (ll < 50) {
+                        if (pi > 7) {
+                            symbol = 'CL';
+                            description = 'Lean clay | طين قليل اللدونة';
+                        } else if (pi < 4) {
+                            symbol = 'ML';
+                            description = 'Silt | سلت';
+                        } else {
+                            symbol = 'ML-CL';
+                            description = 'Silty clay | طين سلتي';
+                        }
+                    } else {
+                        if (pi > 7) {
+                            symbol = 'CH';
+                            description = 'Fat clay | طين عالي اللدونة';
+                        } else {
+                            symbol = 'MH';
+                            description = 'Elastic silt | سلت مرن';
+                        }
+                    }
+                } else {
+                    if (gravel > sand) {
+                        symbol = 'GM/GC';
+                        description = 'Silty/Clayey gravel | حصى سلتي/طيني';
+                    } else {
+                        symbol = 'SM/SC';
+                        description = 'Silty/Clayey sand | رمل سلتي/طيني';
+                    }
+                }
+            }
+
+            return { symbol, description };
+        }
+
+        // AASHTO Classification
+        function classifyAASHTO(gravel, sand, fines, ll, pi) {
+            let group = '';
+            let description = '';
+
+            if (fines <= 35) {
+                // Granular materials
+                if (fines <= 15) {
+                    if (gravel > sand) {
+                        group = 'A-1-a';
+                        description = 'Stone fragments, gravel, and sand';
+                    } else {
+                        group = 'A-1-b';
+                        description = 'Stone fragments, gravel, and sand';
+                    }
+                } else if (fines <= 25) {
+                    group = 'A-2-4';
+                    description = 'Silty or clayey gravel and sand';
+                } else {
+                    if (pi <= 10) {
+                        group = 'A-2-4';
+                        description = 'Silty gravel and sand';
+                    } else {
+                        group = 'A-2-6/A-2-7';
+                        description = 'Clayey gravel and sand';
+                    }
+                }
+            } else {
+                // Silt-clay materials
+                if (ll <= 40) {
+                    if (pi <= 10) {
+                        group = 'A-4';
+                        description = 'Silty soils';
+                    } else {
+                        group = 'A-6';
+                        description = 'Clayey soils';
+                    }
+                } else {
+                    if (pi <= (ll - 30)) {
+                        group = 'A-5';
+                        description = 'Silty soils';
+                    } else {
+                        group = 'A-7-5/A-7-6';
+                        description = 'Clayey soils';
+                    }
+                }
+            }
+
+            return { group, description };
+        }
+
+        // Update gradation chart
+        function updateGradationChart() {
+            const ctx = document.getElementById('gradationChart');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const gridColor = isDark ? '#495057' : '#dee2e6';
+            const textColor = isDark ? '#e9ecef' : '#212529';
+
+            // Filter out Pan (opening=0) — log scale can't handle zero
+            const data = finalResults
+                .filter(r => r.opening > 0)
+                .map(r => ({ x: r.opening, y: r.pp }));
+            data.sort((a, b) => a.x - b.x);
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'النسبة المارة | % Passing',
+                        data: data,
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        x: {
+                            type: 'logarithmic',
+                            position: 'bottom',
+                            reverse: true,
+                            title: {
+                                display: true,
+                                text: 'حجم الجسيمات (mm) | Particle Size (mm)',
+                                color: textColor,
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor,
+                                callback: function(value) {
+                                    return value.toFixed(3);
+                                }
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'النسبة المارة (%) | Percent Passing (%)',
+                                color: textColor,
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: textColor,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.parsed.y.toFixed(1)}% passing at ${context.parsed.x.toFixed(3)} mm`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Generate final report
+        function generateFinalReport() {
+            // Header
+            document.getElementById('reportLabName').textContent = document.getElementById('labName').value || '-';
+            document.getElementById('reportReportNumber').textContent = document.getElementById('reportNumber').value || '-';
+            document.getElementById('reportReportDate').textContent = document.getElementById('reportDate').value || '-';
+
+            // Logo
+            const logoUrl = document.getElementById('labLogo').value;
+            const logoContainer = document.getElementById('reportLogoContainer');
+            if (logoUrl) {
+                logoContainer.innerHTML = `<img src="${logoUrl}" alt="Lab Logo">`;
+            } else {
+                logoContainer.innerHTML = '';
+            }
+
+            // Project info
+            document.getElementById('reportProjectName').textContent = document.getElementById('projectName').value || '-';
+            document.getElementById('reportProjectNumber').textContent = document.getElementById('projectNumber').value || '-';
+            document.getElementById('reportClient').textContent = document.getElementById('client').value || '-';
+            document.getElementById('reportLocation').textContent = document.getElementById('location').value || '-';
+
+            // Sample info
+            document.getElementById('reportSampleId').textContent = document.getElementById('sampleId').value || '-';
+            document.getElementById('reportSampleDescription').textContent = document.getElementById('sampleDescription').value || '-';
+            document.getElementById('reportTestDate').textContent = document.getElementById('testDate').value || '-';
+
+            // Test mode
+            const modeNames = {
+                'single': 'Single Sieve-Set | غربلة بمجموعة واحدة',
+                'composite-single': 'Composite Single Separation | غربلة مركبة - فصل واحد',
+                'composite-double': 'Composite Double Separation | غربلة مركبة - فصل مزدوج'
+            };
+            document.getElementById('reportTestMode').textContent = modeNames[currentTestMode] || '-';
+
+            // Test configuration
+            const method = document.getElementById('methodSelect').value;
+            document.getElementById('reportMethod').textContent = `Method ${method}`;
+            document.getElementById('reportMaxParticleSize').textContent = document.getElementById('maxParticleSize').value ? 
+                document.getElementById('maxParticleSize').value + ' mm' : '-';
+            
+            // Specimen mass based on test mode
+            let specimenMass = '-';
+            if (currentTestMode === 'single') {
+                specimenMass = document.getElementById('singleSpecimenMass').value;
+            } else if (currentTestMode === 'composite-single') {
+                const cpMd = parseFloat(document.getElementById('compCoarserMass').value) || 0;
+                const fpMm = parseFloat(document.getElementById('compFinerMoistMass').value) || 0;
+                const wfp = parseFloat(document.getElementById('compFinerWaterContent').value) || 0;
+                const fpMd = fpMm / (1 + wfp / 100);
+                specimenMass = (cpMd + fpMd).toFixed(2);
+            } else if (currentTestMode === 'composite-double') {
+                const cpMd = parseFloat(document.getElementById('double1stCPMd').value) || 0;
+                const fpMm = parseFloat(document.getElementById('double1stFPMm').value) || 0;
+                const wfp = parseFloat(document.getElementById('double1stFPw').value) || 0;
+                const fpMd = fpMm / (1 + wfp / 100);
+                specimenMass = (cpMd + fpMd).toFixed(2);
+            }
+            document.getElementById('reportSpecimenMass').textContent = specimenMass ? specimenMass + ' g' : '-';
+            
+            const temp = document.getElementById('labTemperature').value;
+            document.getElementById('reportTemperature').textContent = temp ? temp + ' °C' : '-';
+
+            // Classification
+            document.getElementById('reportGravel').textContent = document.getElementById('gravelPercent').textContent;
+            document.getElementById('reportSand').textContent = document.getElementById('sandPercent').textContent;
+            document.getElementById('reportFines').textContent = document.getElementById('finesPercent').textContent;
+            document.getElementById('reportUSCS').textContent = document.getElementById('uscsClass').textContent;
+            document.getElementById('reportUSCSDesc').textContent = document.getElementById('uscsDescription').textContent;
+            document.getElementById('reportAASHTO').textContent = document.getElementById('aashtoClass').textContent;
+            document.getElementById('reportAASHTODesc').textContent = document.getElementById('aashtoDescription').textContent;
+            document.getElementById('reportCu').textContent = document.getElementById('cuValue').textContent;
+            document.getElementById('reportCc').textContent = document.getElementById('ccValue').textContent;
+
+            // Gradation table — ALL rows from finalResults (no zero-filter)
+            const tbody = document.getElementById('reportGradationTableBody');
+            tbody.innerHTML = '';
+
+            finalResults.forEach(result => {
+                const prVal  = result.pr  != null ? result.pr.toFixed(1)  : '—';
+                const cprVal = result.cpr != null ? result.cpr.toFixed(1) : '—';
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${result.sieve}</td>
+                    <td>${result.opening.toFixed(3)}</td>
+                    <td>${prVal}</td>
+                    <td>${cprVal}</td>
+                    <td><strong>${result.pp.toFixed(1)}</strong></td>
+                `;
+            });
+
+            // Signatures
+            document.getElementById('reportTechnician').textContent = document.getElementById('technicianName').value || '-';
+            document.getElementById('reportReviewer').textContent = document.getElementById('reviewerName').value || '-';
+            document.getElementById('reportApprover').textContent = document.getElementById('approverName').value || '-';
+
+            // Create report chart
+            updateReportChart();
+        }
+
+        // Update report chart
+        function updateReportChart() {
+            const ctx = document.getElementById('reportGradationChart');
+            
+            if (reportChartInstance) {
+                reportChartInstance.destroy();
+            }
+
+            // Filter out Pan (opening=0) — log scale can't handle zero
+            const data = finalResults
+                .filter(r => r.opening > 0)
+                .map(r => ({ x: r.opening, y: r.pp }));
+            data.sort((a, b) => a.x - b.x);
+
+            reportChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: '% Passing',
+                        data: data,
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        x: {
+                            type: 'logarithmic',
+                            reverse: true,
+                            title: {
+                                display: true,
+                                text: 'Particle Size (mm)',
+                                color: '#000',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: { color: '#ddd' },
+                            ticks: {
+                                color: '#000',
+                                callback: function(value) {
+                                    return value.toFixed(3);
+                                }
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Percent Passing (%)',
+                                color: '#000',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: { color: '#ddd' },
+                            ticks: { color: '#000' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#000',
+                                font: { size: 11 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Collapsible sections
+        function toggleCollapse(header) {
+            const content = header.nextElementSibling;
+            const arrow = header.querySelector('span:last-child');
+            
+            if (content.classList.contains('open')) {
+                content.classList.remove('open');
+                arrow.textContent = '▶';
+            } else {
+                content.classList.add('open');
+                arrow.textContent = '▼';
+            }
+        }
+
+        // Auto-save
+        function autoSave() {
+            saveToLocalStorage();
+            
+            const indicator = document.getElementById('saveIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+
+        // Save to localStorage
+        function saveToLocalStorage() {
+            const data = {
+                testMode: currentTestMode,
+                formData: {},
+                finalResults: finalResults
+            };
+
+            // Save all form inputs
+            document.querySelectorAll('input, select, textarea').forEach(input => {
+                if (input.id) {
+                    if (input.type === 'checkbox') {
+                        data.formData[input.id] = input.checked;
+                    } else {
+                        data.formData[input.id] = input.value;
+                    }
+                }
+            });
+
+            localStorage.setItem('astmD6913Data', JSON.stringify(data));
+        }
+
+        // Load from localStorage
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('astmD6913Data');
+            if (!saved) return;
+
+            try {
+                const data = JSON.parse(saved);
+                
+                currentTestMode = data.testMode || 'single';
+                finalResults = data.finalResults || [];
+
+                // Restore form data
+                Object.keys(data.formData).forEach(id => {
+                    const input = document.getElementById(id);
+                    if (input) {
+                        if (input.type === 'checkbox') {
+                            input.checked = data.formData[id];
+                        } else {
+                            input.value = data.formData[id];
+                        }
+                    }
+                });
+
+                // Update mode selection
+                document.querySelectorAll('.mode-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                const modeMap = {
+                    'single': 0,
+                    'composite-single': 1,
+                    'composite-double': 2
+                };
+                document.querySelectorAll('.mode-option')[modeMap[currentTestMode]].classList.add('selected');
+                
+                selectTestMode(currentTestMode);
+
+            } catch (e) {
+                console.error('Error loading saved data:', e);
+            }
+        }
+
+        // Save project
+        function saveProject() {
+            const data = {
+                testMode: currentTestMode,
+                formData: {},
+                finalResults: finalResults,
+                version: '1.0',
+                savedAt: new Date().toISOString()
+            };
+
+            document.querySelectorAll('input, select, textarea').forEach(input => {
+                if (input.id) {
+                    if (input.type === 'checkbox') {
+                        data.formData[input.id] = input.checked;
+                    } else {
+                        data.formData[input.id] = input.value;
+                    }
+                }
+            });
+
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ASTM_D6913_${document.getElementById('sampleId').value || 'project'}_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            alert('✅ تم حفظ المشروع | Project saved successfully');
+        }
+
+        // Load project
+        function loadProject(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    currentTestMode = data.testMode || 'single';
+                    finalResults = data.finalResults || [];
+
+                    Object.keys(data.formData).forEach(id => {
+                        const input = document.getElementById(id);
+                        if (input) {
+                            if (input.type === 'checkbox') {
+                                input.checked = data.formData[id];
+                            } else {
+                                input.value = data.formData[id];
+                            }
+                        }
+                    });
+
+                    selectTestMode(currentTestMode);
+                    autoSave();
+
+                    alert('✅ تم تحميل المشروع | Project loaded successfully');
+                } catch (error) {
+                    alert('❌ خطأ في تحميل الملف | Error loading file');
+                    console.error(error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Export CSV
+        function exportCSV() {
+            if (finalResults.length === 0) {
+                alert('⚠️ لا توجد نتائج للتصدير | No results to export');
+                return;
+            }
+
+            let csv = 'Sieve,Opening (mm),Mass Retained (g),Cumulative MR (g),% Retained,Cumulative %R,% Passing\n';
+            
+            let cumMR = 0;
+            finalResults.forEach(result => {
+                cumMR += result.mr;
+                csv += `${result.sieve},${result.opening},${result.mr.toFixed(2)},${cumMR.toFixed(2)},${result.pr.toFixed(1)},${result.cpr.toFixed(1)},${result.pp.toFixed(1)}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Gradation_${document.getElementById('sampleId').value || 'results'}_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            alert('✅ تم التصدير | Exported successfully');
+        }
+
+        // Load demo data
+        function loadDemoData() {
+            const mode = prompt('اختر وضع البيانات التجريبية | Select demo data mode:\n\n1 - Single sieve-set (غربلة واحدة)\n2 - Composite single (غربلة مركبة - فصل واحد)\n3 - Composite double (غربلة مركبة - فصل مزدوج)\n\nأدخل الرقم | Enter number:', '1');
+            
+            if (!mode || !['1', '2', '3'].includes(mode)) {
+                return;
+            }
+
+            // Lab info
+            document.getElementById('labName').value = 'مختبر الجيوتقنيك المتقدم | Advanced Geotechnical Laboratory';
+            document.getElementById('reportNumber').value = 'GT-2024-001';
+            document.getElementById('technicianName').value = 'أحمد محمد | Ahmed Mohammed';
+            document.getElementById('reviewerName').value = 'د. سارة علي | Dr. Sara Ali';
+            document.getElementById('approverName').value = 'م. محمود حسن | Eng. Mahmoud Hassan';
+
+            // Project info
+            document.getElementById('projectName').value = 'مشروع الطريق السريع الجديد | New Highway Project';
+            document.getElementById('projectNumber').value = 'HW-2024-15';
+            document.getElementById('client').value = 'وزارة النقل | Ministry of Transport';
+            document.getElementById('location').value = 'القاهرة، مصر | Cairo, Egypt';
+
+            // Sample info
+            document.getElementById('sampleId').value = 'BH-3-S2';
+            document.getElementById('sampleDescription').value = mode === '1' ? 'رمل سلتي بني | Brown silty sand' : 
+                                                                mode === '2' ? 'رمل مع حصى | Sand with gravel' :
+                                                                'تربة متدرجة جيداً | Well-graded soil';
+            document.getElementById('testDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
+
+            // Environmental
+            document.getElementById('labTemperature').value = '23.5';
+            document.getElementById('relativeHumidity').value = '55';
+
+            // Atterberg limits
+            document.getElementById('liquidLimit').value = mode === '1' ? '28' : mode === '2' ? '22' : '25';
+            document.getElementById('plasticLimit').value = mode === '1' ? '18' : mode === '2' ? '15' : '16';
+            calculatePI();
+
+            // Test data
+            document.getElementById('methodSelect').value = 'A';
+            
+            if (mode === '1') {
+                // Single sieve-set demo
+                document.getElementById('maxParticleSize').value = '9.5';
+                document.getElementById('singleSpecimenMass').value = '500.00';
+
+                const demoData = {
+                    6: 485.50,  // No. 4
+                    7: 487.30,  // No. 10
+                    8: 490.15,  // No. 20
+                    9: 493.80,  // No. 40
+                    10: 495.50, // No. 60
+                    11: 496.80, // No. 100
+                    12: 497.40, // No. 140
+                    13: 498.10, // No. 200
+                    14: 500.00  // Pan
+                };
+
+                Object.keys(demoData).forEach(index => {
+                    const input = document.getElementById(`single_cmr_${index}`);
+                    if (input) input.value = demoData[index];
+                });
+
+                document.querySelectorAll('.mode-option')[0].click();
+                setTimeout(() => calculateSingle(), 100);
+
+            } else if (mode === '2') {
+                // Composite single separation demo
+                document.getElementById('maxParticleSize').value = '25.0';
+                document.getElementById('compCoarserMass').value = '3500.0';
+                document.getElementById('compFinerMoistMass').value = '1550.0';
+                document.getElementById('compFinerWaterContent').value = '3.2';
+                document.getElementById('compSubspecimenMass').value = '1500.0';
+                document.getElementById('compCoarserWashedMass').value = '3498.0';
+                document.getElementById('compCoarserPanMass').value = '1.5';
+                document.getElementById('compSingleSeparatingSieve').value = '4.75';
+
+                // Coarser portion data
+                const coarserData = {
+                    3: 850.0,   // 1 in
+                    4: 2150.0,  // 3/4 in
+                    5: 3100.0,  // 3/8 in
+                    6: 3480.0,  // No. 4
+                    14: 3500.0  // Pan
+                };
+
+                Object.keys(coarserData).forEach(index => {
+                    const input = document.getElementById(`compCoarser_cmr_${index}`);
+                    if (input) input.value = coarserData[index];
+                });
+
+                // Finer portion data
+                const finerData = {
+                    7: 245.0,   // No. 10
+                    8: 580.0,   // No. 20
+                    9: 920.0,   // No. 40
+                    10: 1150.0, // No. 60
+                    11: 1320.0, // No. 100
+                    12: 1395.0, // No. 140
+                    13: 1455.0, // No. 200
+                    14: 1500.0  // Pan
+                };
+
+                Object.keys(finerData).forEach(index => {
+                    const input = document.getElementById(`compFiner_fcmr_${index}`);
+                    if (input) input.value = finerData[index];
+                });
+
+                document.querySelectorAll('.mode-option')[1].click();
+                setTimeout(() => calculateCompositeSingle(), 100);
+
+            } else if (mode === '3') {
+                // Composite double separation demo
+                document.getElementById('maxParticleSize').value = '75.0';
+                
+                // 1st separation data
+                document.getElementById('double1stCPMd').value = '5000.0';
+                document.getElementById('double1stFPMm').value = '3100.0';
+                document.getElementById('double1stFPw').value = '3.3';
+                document.getElementById('double1stSubSMd').value = '3000.0';
+                document.getElementById('compDouble1stSieve').value = '19.0';
+                
+                // 2nd separation data
+                document.getElementById('double2ndCPMd').value = '1800.0';
+                document.getElementById('double2ndCPwMd').value = '1795.0';
+                document.getElementById('double2ndCPMRpan').value = '2.5';
+                document.getElementById('double2ndSubSMd').value = '1200.0';
+                document.getElementById('compDouble2ndSieve').value = '4.75';
+
+                // 1st Coarser portion data
+                const double1stCoarserData = {
+                    0: 250.0,   // 3 in
+                    1: 1200.0,  // 2 in
+                    2: 2500.0,  // 1.5 in
+                    3: 3800.0,  // 1 in
+                    4: 4750.0,  // 3/4 in
+                    5: 4950.0,  // 3/8 in
+                    6: 4995.0,  // No. 4
+                    14: 5000.0  // Pan
+                };
+
+                Object.keys(double1stCoarserData).forEach(index => {
+                    const input = document.getElementById(`double1stCP_cmr_${index}`);
+                    if (input) input.value = double1stCoarserData[index];
+                });
+
+                // 2nd Coarser portion data
+                const double2ndCoarserData = {
+                    4: 320.0,   // 3/4 in
+                    5: 850.0,   // 3/8 in
+                    6: 1650.0,  // No. 4
+                    7: 1740.0,  // No. 10
+                    8: 1785.0,  // No. 20
+                    9: 1795.0   // No. 40
+                };
+
+                Object.keys(double2ndCoarserData).forEach(index => {
+                    const input = document.getElementById(`double2ndCP_fcmr_${index}`);
+                    if (input) input.value = double2ndCoarserData[index];
+                });
+
+                // 2nd Subspecimen data
+                const double2ndSubSData = {
+                    6: 180.0,   // No. 4
+                    7: 385.0,   // No. 10
+                    8: 695.0,   // No. 20
+                    9: 920.0,   // No. 40
+                    10: 1050.0, // No. 60
+                    11: 1125.0, // No. 100
+                    12: 1160.0, // No. 140
+                    13: 1185.0, // No. 200
+                    14: 1200.0  // Pan
+                };
+
+                Object.keys(double2ndSubSData).forEach(index => {
+                    const input = document.getElementById(`double2ndSubS_fcmr_${index}`);
+                    if (input) input.value = double2ndSubSData[index];
+                });
+
+                document.querySelectorAll('.mode-option')[2].click();
+                setTimeout(() => calculateDoubleComposite(), 100);
+            }
+
+            autoSave();
+            alert('✅ تم تحميل البيانات التجريبية | Demo data loaded successfully');
+        }
+
+        // Reset all
+        function resetAll() {
+            if (!confirm('هل تريد حذف جميع البيانات؟ لا يمكن التراجع عن هذا الإجراء.\nDelete all data? This action cannot be undone.')) {
+                return;
+            }
+
+            localStorage.removeItem('astmD6913Data');
+            location.reload();
+        }
+
+        // Set default dates
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            if (!document.getElementById('testDate').value) {
+                document.getElementById('testDate').value = today;
+            }
+            if (!document.getElementById('reportDate').value) {
+                document.getElementById('reportDate').value = today;
+            }
+        }
+    </script>
+</body>
+</html>
