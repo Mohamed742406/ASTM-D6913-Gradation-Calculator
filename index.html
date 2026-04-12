@@ -4,7 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ASTM D6913 Gradation Calculator | حاسبة التدرج الحبيبي</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+/* Chart.js loader with multiple CDN fallbacks */
+(function(){
+    var urls = [
+        'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+        'https://unpkg.com/chart.js@4.4.0/dist/chart.umd.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js'
+    ];
+    function tryLoad(i) {
+        if (i >= urls.length) {
+            console.warn('Chart.js could not be loaded from any CDN. Charts will use canvas fallback.');
+            window._chartJsFailed = true;
+            return;
+        }
+        var s = document.createElement('script');
+        s.src = urls[i];
+        s.crossOrigin = 'anonymous';
+        s.onerror = function(){ tryLoad(i+1); };
+        document.head.appendChild(s);
+    }
+    tryLoad(0);
+})();
+</script>
     <style>
         * {
             margin: 0;
@@ -54,35 +76,98 @@
         }
 
         .header {
-            background: var(--bg-secondary);
-            padding: 20px 30px;
-            box-shadow: var(--shadow);
+            background: linear-gradient(135deg, #0a2342 0%, #1a3a6b 60%, #0d6efd 100%);
+            padding: 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
             margin-bottom: 20px;
-            border-radius: 8px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 180px; height: 180px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -50px; left: 30%;
+            width: 220px; height: 220px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 50%;
+        }
+        .header-inner {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
+            padding: 18px 28px;
+            position: relative;
+            z-index: 1;
         }
-
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .header-logo {
+            width: 52px; height: 52px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.7rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            flex-shrink: 0;
+        }
         .header-title h1 {
-            font-size: 1.8rem;
-            color: var(--accent-color);
-            font-weight: 600;
-            margin-bottom: 5px;
+            font-size: 1.25rem;
+            color: #fff;
+            font-weight: 700;
+            margin-bottom: 2px;
+            letter-spacing: 0.3px;
         }
-
         .header-title .subtitle {
-            font-size: 0.95rem;
-            color: var(--text-secondary);
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.5;
+        }
+        .header-title .subtitle .dev-name {
+            color: #90caf9;
+            font-weight: 600;
+        }
+        .header-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: #fff;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-top: 3px;
+            letter-spacing: 0.5px;
         }
 
         .header-controls {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
             flex-wrap: wrap;
+        }
+        /* Header divider bar */
+        .header-divider {
+            height: 3px;
+            background: linear-gradient(90deg, #0d6efd, #6f42c1, #0dcaf0, #198754);
+            background-size: 300% 100%;
+            animation: shimmer 4s linear infinite;
+        }
+        @keyframes shimmer {
+            0%   { background-position: 0% 50%; }
+            100% { background-position: 300% 50%; }
         }
 
         .btn {
@@ -591,71 +676,241 @@
         }
 
         /* Print Styles */
+        /* ============================================================
+           ASTM D6913 REPORT — Single-Page A4, Readable 8pt
+           ============================================================ */
+        #rpt-wrap {
+            width: 185mm;
+            margin: 0 auto;
+            background: #fff;
+            color: #000;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 8pt;
+            border: 1.5px solid #000;
+            box-sizing: border-box;
+            direction: ltr !important;
+            text-align: left !important;
+        }
+        #rpt-wrap * {
+            direction: ltr !important;
+            font-family: Arial, Helvetica, sans-serif !important;
+            box-sizing: border-box;
+        }
+        /* ── Page number ── */
+        #rpt-wrap .rpt-pgnum {
+            text-align: right !important;
+            font-size: 7pt;
+            padding: 1px 4px;
+            border-bottom: 1px solid #000;
+        }
+        /* ── Main title ── */
+        #rpt-wrap .rpt-main-title {
+            text-align: center !important;
+            font-size: 11pt;
+            font-weight: bold;
+            padding: 2px 4px 1px;
+            border-bottom: 1px solid #000;
+        }
+        /* ── Dark section header (black bg, white text) ── */
+        #rpt-wrap .rpt-dark-hdr {
+            background: #000;
+            color: #fff !important;
+            text-align: center !important;
+            font-weight: bold;
+            font-size: 8pt;
+            padding: 1.5px 4px;
+            border-bottom: 1px solid #000;
+        }
+        #rpt-wrap .rpt-dark-hdr * { color: #fff !important; }
+        /* ── Sub-title (SOIL GRADATION REPORT) ── */
+        #rpt-wrap .rpt-sub-title {
+            background: #000;
+            color: #fff !important;
+            text-align: center !important;
+            font-size: 9pt;
+            font-weight: bold;
+            padding: 2px 4px;
+            border-bottom: 1px solid #000;
+        }
+        /* ── Info rows ── */
+        #rpt-wrap .r { display: flex; border-bottom: 1px solid #000; min-height: 12px; }
+        #rpt-wrap .c {
+            padding: 1px 3px;
+            border-right: 1px solid #000;
+            line-height: 1.25;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2px;
+        }
+        #rpt-wrap .c:last-child { border-right: none; }
+        #rpt-wrap .c .lb { font-weight: normal; white-space: nowrap; }
+        #rpt-wrap .c .vl {
+            border-bottom: 1px solid #333;
+            min-width: 45px;
+            display: inline-block;
+            padding: 0 1px;
+            font-weight: 600;
+        }
+        #rpt-wrap .c .vl-lg { min-width: 110px; }
+        #rpt-wrap .c .vl-md { min-width: 70px; }
+        #rpt-wrap .c .vl-sm { min-width: 32px; }
+        /* ── Checkboxes ── */
+        #rpt-wrap .ck {
+            display: inline-block;
+            width: 9px; height: 9px;
+            border: 1.5px solid #000;
+            vertical-align: middle;
+            text-align: center !important;
+            line-height: 8px;
+            font-size: 8px;
+            margin: 0 1px;
+        }
+        #rpt-wrap .ck.on::after { content: '✓'; font-weight: bold; }
+        /* ── Equipment table ── */
+        #rpt-wrap .eq-tbl {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+        }
+        #rpt-wrap .eq-tbl th, #rpt-wrap .eq-tbl td {
+            border: 1px solid #000;
+            padding: 1px 4px;
+            text-align: left !important;
+        }
+        #rpt-wrap .eq-tbl th { background: #d8d8d8; font-weight: bold; text-align: center !important; }
+        /* ── Sieve table ── */
+        #rpt-wrap .sv-tbl {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+        }
+        #rpt-wrap .sv-tbl th, #rpt-wrap .sv-tbl td {
+            border: 1px solid #000;
+            padding: 1px 3px;
+            text-align: center !important;
+        }
+        #rpt-wrap .sv-tbl th { background: #d0d0d0; font-weight: bold; }
+        #rpt-wrap .sv-tbl td:first-child { text-align: left !important; }
+        #rpt-wrap .sv-tbl tr:nth-child(even) td { background: #f4f4f4; }
+        #rpt-wrap .sv-tbl tr.total-row td { font-weight: bold; background: #d8d8d8; }
+        #rpt-wrap .sv-tbl tr.mass-loss-row td { background: #fff8e0; font-style: italic; }
+        /* ── Fraction summary row ── */
+        #rpt-wrap .frac-row {
+            padding: 1.5px 4px;
+            border-bottom: 1px solid #000;
+            font-size: 8pt;
+            font-weight: 500;
+        }
+        /* ── Chart zone labels ── */
+        #rpt-wrap .zone-bar {
+            display: flex;
+            border-bottom: 1px dashed #999;
+            font-size: 6.5pt;
+            font-weight: bold;
+        }
+        #rpt-wrap .zone-bar .z {
+            text-align: center !important;
+            padding: 1px 0;
+            border-right: 1px dashed #999;
+        }
+        #rpt-wrap .zone-bar .z:last-child { border-right: none; }
+        /* ── Chart area ── */
+        #rpt-wrap .chart-area {
+            padding: 2px 3px 2px;
+            border-bottom: 1px solid #000;
+            height: 130px;
+        }
+        #rpt-wrap .chart-area canvas { display: block; width: 100% !important; height: 100% !important; }
+        /* ── Classification section ── */
+        #rpt-wrap .cls-row {
+            display: flex;
+            align-items: baseline;
+            border-bottom: 1px solid #ccc;
+            padding: 1px 4px;
+            font-size: 8pt;
+            flex-wrap: wrap;
+            gap: 5px;
+            min-height: 11px;
+        }
+        #rpt-wrap .cls-row:last-child { border-bottom: none; }
+        #rpt-wrap .cls-row .lb2 { min-width: 170px; font-weight: bold; white-space: nowrap; }
+        #rpt-wrap .cls-row .vl2 {
+            border-bottom: 1px solid #333;
+            min-width: 55px;
+            display: inline-block;
+            padding: 0 2px;
+            font-weight: 600;
+        }
+        #rpt-wrap .cls-section { border-bottom: 1px solid #000; }
+        /* ── Footer ── */
+        #rpt-wrap .sig-outer { border-top: 1px solid #000; }
+        #rpt-wrap .sig-hdr {
+            display: flex;
+            border-bottom: 1px solid #000;
+        }
+        #rpt-wrap .sig-hdr .sh {
+            flex: 1;
+            text-align: center !important;
+            font-weight: bold;
+            font-size: 8pt;
+            padding: 2px 3px;
+            border-right: 1px solid #000;
+        }
+        #rpt-wrap .sig-hdr .sh:last-child { border-right: none; }
+        #rpt-wrap .sig-body { display: flex; }
+        #rpt-wrap .sig-body .sb {
+            flex: 1;
+            padding: 2px 4px;
+            border-right: 1px solid #000;
+            font-size: 8pt;
+        }
+        #rpt-wrap .sig-body .sb:last-child { border-right: none; }
+        #rpt-wrap .sig-line {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 2px;
+            gap: 3px;
+        }
+        #rpt-wrap .sig-line .sl { font-weight: bold; white-space: nowrap; min-width: 55px; }
+        #rpt-wrap .sig-line .sv {
+            flex: 1;
+            border-bottom: 1px solid #444;
+            min-height: 10px;
+        }
+        /* Print */
+        .rpt-actions { text-align: center; margin: 12px 0; }
+
         @media print {
-            body {
-                background: white;
-                color: black;
-            }
-
-            .header,
-            .tabs,
-            .btn,
-            .progress-container,
-            .no-print {
-                display: none !important;
-            }
-
-            .container {
-                max-width: 100%;
-                padding: 0;
-            }
-
-            .tab-content {
+            body { background: white !important; }
+            .header, .tabs, .btn, .progress-container,
+            .no-print, .rpt-actions { display: none !important; }
+            .container { max-width: 100%; padding: 0; margin: 0; }
+            .tab-content { display: none !important; }
+            #tab4 { display: block !important; }
+            #tab4 > * { display: none; }
+            #rpt-wrap {
                 display: block !important;
-            }
-
-            #tab4 {
-                display: block !important;
-            }
-
-            .card {
+                width: 100% !important;
+                margin: 0 !important;
+                border: 1.5px solid #000 !important;
                 page-break-inside: avoid;
-                box-shadow: none;
-                border: 1px solid #000;
+                break-inside: avoid;
+                font-size: 8pt !important;
             }
-
-            .report-page {
-                page-break-after: always;
-            }
-
-            .report-page:last-child {
-                page-break-after: auto;
-            }
-
-            table {
-                page-break-inside: auto;
-            }
-
-            tr {
-                page-break-inside: avoid;
-                page-break-after: auto;
-            }
-
-            thead {
-                display: table-header-group;
-            }
-
-            tfoot {
-                display: table-footer-group;
-            }
+            #rpt-wrap .chart-area { height: 108px !important; }
+            #rpt-wrap .rpt-main-title { font-size: 10pt !important; padding: 1.5px 4px !important; }
+            #rpt-wrap .rpt-sub-title  { font-size: 8.5pt !important; padding: 1.5px 4px !important; }
+            #rpt-wrap .rpt-dark-hdr   { padding: 1px 4px !important; }
+            #rpt-wrap .r              { min-height: 11px !important; }
+            #rpt-wrap .c              { padding: 0.5px 3px !important; }
+            #rpt-wrap .cls-row        { padding: 0.5px 4px !important; min-height: 10px !important; }
+            #rpt-wrap .frac-row       { padding: 1px 4px !important; }
+            #rpt-wrap .sig-body .sb   { padding: 1.5px 4px !important; }
         }
+        @page { size: A4 portrait; margin: 5mm 8mm; }
 
-        @page {
-            size: A4;
-            margin: 15mm;
-        }
-
-        /* Report Specific Styles */
+        /* Report Specific Styles (legacy, kept for other sections) */
         .report-header {
             text-align: center;
             padding: 30px 20px;
@@ -816,18 +1071,31 @@
     <div class="container">
         <!-- Header -->
         <div class="header no-print">
-            <div class="header-title">
-                <h1>🧪 حاسبة التدرج الحبيبي | ASTM D6913 Gradation Calculator</h1>
-                <div class="subtitle">معمل الجيوتقنيك الاحترافي | Professional Geotechnical Laboratory System</div>
+            <div class="header-inner">
+                <div class="header-brand">
+                    <div class="header-logo">🧪</div>
+                    <div class="header-title">
+                        <h1>حاسبة التدرج الحبيبي للتربة</h1>
+                        <div class="subtitle">
+                            <span>Particle-Size Distribution (Gradation) of Soils — </span>
+                            <span style="color:#90caf9;font-weight:600;">ASTM D6913/D6913M-17</span><br>
+                            <span class="dev-name">إعداد وتطوير: م/ محمد أحمد القصبي</span>
+                            <span style="color:rgba(255,255,255,0.55);"> · Eng. Mohamed Ahmed Elkasaby</span>
+                            <br><span class="header-badge">🏛 ISO 17025 Compatible · USCS D2487 · AASHTO D3282</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-controls">
+                    <button class="btn btn-icon" onclick="toggleTheme()" title="تبديل الوضع | Toggle Theme" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);">🌓</button>
+                    <button class="btn" onclick="showUserGuide()" style="background:rgba(111,66,193,0.85);border:1px solid rgba(111,66,193,0.5);">📖 دليل المستخدم</button>
+                    <button class="btn btn-success" onclick="saveProject()" style="background:rgba(25,135,84,0.85);">💾 حفظ</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('loadProjectInput').click()" style="background:rgba(108,117,125,0.85);">📂 تحميل</button>
+                    <input type="file" id="loadProjectInput" accept=".json" style="display:none" onchange="loadProject(event)">
+                    <button class="btn btn-warning" onclick="loadDemoData()" style="background:rgba(255,193,7,0.9);color:#000;">📊 Demo</button>
+                    <button class="btn btn-danger" onclick="resetAll()" style="background:rgba(220,53,69,0.85);">🔄 Reset</button>
+                </div>
             </div>
-            <div class="header-controls">
-                <button class="btn btn-icon" onclick="toggleTheme()" title="تبديل الوضع | Toggle Theme">🌓</button>
-                <button class="btn btn-success" onclick="saveProject()">💾 حفظ المشروع | Save</button>
-                <button class="btn btn-secondary" onclick="document.getElementById('loadProjectInput').click()">📂 تحميل | Load</button>
-                <input type="file" id="loadProjectInput" accept=".json" style="display:none" onchange="loadProject(event)">
-                <button class="btn btn-warning" onclick="loadDemoData()">📊 بيانات تجريبية | Demo</button>
-                <button class="btn btn-danger" onclick="resetAll()">🔄 إعادة تعيين | Reset</button>
-            </div>
+            <div class="header-divider"></div>
         </div>
 
         <!-- Progress Indicator -->
@@ -888,16 +1156,78 @@
                         <input type="text" id="reportNumber" onchange="autoSave()">
                     </div>
                     <div class="form-group">
-                        <label><span class="required">*</span> اسم الفني | Technician Name</label>
-                        <input type="text" id="technicianName" onchange="autoSave()">
+                        <label><span class="required">*</span> اسم الفني القائم بالاختبار | Performing Technician</label>
+                        <input type="text" id="technicianName" onchange="autoSave()" placeholder="الاسم الكامل | Full name">
                     </div>
                     <div class="form-group">
-                        <label>اسم المراجع | Reviewer Name</label>
+                        <label>اسم المراجع | Reviewer / Quality Manager</label>
                         <input type="text" id="reviewerName" onchange="autoSave()">
                     </div>
                     <div class="form-group">
-                        <label>اسم المعتمد | Approver Name</label>
+                        <label>اسم المعتمد | Approver / Technical Manager</label>
                         <input type="text" id="approverName" onchange="autoSave()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ISO 17025 Equipment Traceability -->
+            <div class="card">
+                <div class="card-header">🔬 معايرة الأجهزة ISO 17025 | Equipment Traceability</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>رقم الميزان / Serial No. | Balance ID</label>
+                        <input type="text" id="balanceId" placeholder="e.g., BAL-001" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>تاريخ انتهاء معايرة الميزان | Balance Cal. Expiry</label>
+                        <input type="date" id="balanceCalExp" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>رقم هزاز المناخل | Sieve Shaker ID</label>
+                        <input type="text" id="sieveShakerId" placeholder="e.g., SHK-002" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>تاريخ انتهاء معايرة الهزاز | Shaker Cal. Expiry</label>
+                        <input type="date" id="shakerCalExp" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>رقم الفرن | Oven ID</label>
+                        <input type="text" id="ovenId" placeholder="e.g., OVN-003" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>تاريخ انتهاء معايرة الفرن | Oven Cal. Expiry</label>
+                        <input type="date" id="ovenCalExp" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>رقم المؤقت / Timer ID</label>
+                        <input type="text" id="timerId" placeholder="e.g., TMR-001" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>أرقام طقم المناخل | Individual Sieve Set IDs</label>
+                        <input type="text" id="sieveSetIds" placeholder="e.g., SS-4.75, SS-2.00, SS-0.425 ..." onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>طريقة النخل | Sieving Technique</label>
+                        <select id="sievingTechnique" onchange="autoSave()">
+                            <option value="mechanical">Mechanical Shaker | هزاز ميكانيكي</option>
+                            <option value="manual">Manual | يدوي</option>
+                            <option value="combined">Combined | مدمج</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>مدة الهز (دقائق) | Shaking Duration (min)</label>
+                        <input type="number" step="1" id="shakingDuration" placeholder="e.g., 10" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>غسل منخل 200 قبل التجفيف | Wash No.200 Before Drying</label>
+                        <select id="washNo200" onchange="autoSave()">
+                            <option value="no">No | لا</option>
+                            <option value="yes">Yes | نعم</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>الكتلة الكلية بعد النخل (g) | Total Mass After Sieving</label>
+                        <input type="number" step="0.01" id="massAfterSieving" placeholder="e.g., 499.5" onchange="autoSave()">
                     </div>
                 </div>
             </div>
@@ -935,25 +1265,45 @@
             </div>
 
             <div class="card">
-                <div class="card-header">
-                    🧪 معلومات العينة | Sample Information
-                </div>
+                <div class="card-header">🧪 معلومات العينة | Sample Information</div>
                 <div class="form-grid">
                     <div class="form-group">
                         <label><span class="required">*</span> رقم العينة | Sample ID</label>
                         <input type="text" id="sampleId" onchange="autoSave()">
                     </div>
                     <div class="form-group">
-                        <label><span class="required">*</span> وصف العينة | Sample Description</label>
+                        <label><span class="required">*</span> وصف التربة | Soil Description</label>
                         <input type="text" id="sampleDescription" onchange="autoSave()">
                     </div>
                     <div class="form-group">
-                        <label>مصدر العينة | Sample Source</label>
+                        <label>نوع العينة | Sample Type</label>
+                        <select id="sampleType" onchange="autoSave()">
+                            <option value="disturbed">Disturbed | مضطربة</option>
+                            <option value="undisturbed">Undisturbed | غير مضطربة</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>طريقة التحضير | Preparation Method</label>
+                        <select id="preparationMethod" onchange="autoSave()">
+                            <option value="dry">Dry — D6913 §10.3 | جافة</option>
+                            <option value="wet">Wet — ASTM D2217 | رطبة</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>الموقع / المحطة / المقلع | Location / Station / Borrow Pit</label>
+                        <input type="text" id="location" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>مصدر العينة | Sample Source / Borehole</label>
                         <input type="text" id="sampleSource" onchange="autoSave()">
                     </div>
                     <div class="form-group">
                         <label>تاريخ الاستلام | Date Received</label>
                         <input type="date" id="dateReceived" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>تاريخ أخذ العينة | Sample Date</label>
+                        <input type="date" id="sampleDate" onchange="autoSave()">
                     </div>
                     <div class="form-group">
                         <label><span class="required">*</span> تاريخ الاختبار | Test Date</label>
@@ -962,6 +1312,27 @@
                     <div class="form-group">
                         <label><span class="required">*</span> تاريخ التقرير | Report Date</label>
                         <input type="date" id="reportDate" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>مع اختبار الهيدروميتر ASTM D7928 | Combined with Hydrometer</label>
+                        <select id="hydroTest" onchange="autoSave()">
+                            <option value="no">No | لا</option>
+                            <option value="yes">Yes (attach report) | نعم (إرفاق تقرير)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>ملاحظات | Remarks</label>
+                        <input type="text" id="remarks" onchange="autoSave()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">👤 المراجع المستقل | Independent Technical Reviewer</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>اسم المراجع المستقل ISO 17025 | Independent Technical Reviewer</label>
+                        <input type="text" id="independentReviewer" onchange="autoSave()">
                     </div>
                 </div>
             </div>
@@ -1041,6 +1412,15 @@
                     <div class="form-group">
                         <label>الحد الأقصى لحجم الجسيمات (mm) | Maximum Particle Size</label>
                         <input type="number" step="0.01" id="maxParticleSize" onchange="autoSave()">
+                    </div>
+                    <div class="form-group">
+                        <label>⚙️ قطر المناخل المستخدمة | Sieve Diameter</label>
+                        <select id="sieveDiameter" onchange="autoSave()" style="border:2px solid var(--accent-color);">
+                            <option value="200">200 mm (8 in) — القياسي</option>
+                            <option value="305">305 mm (12 in)</option>
+                            <option value="370x580">370×580 mm (14.6×22.8 in)</option>
+                        </select>
+                        <small style="color:var(--text-secondary);">يؤثر على حدود الحمل الأقصى (Table 3)</small>
                     </div>
                 </div>
 
@@ -1520,10 +1900,41 @@
                 </div>
 
                 <!-- Gradation Curve -->
-                <h3 style="margin: 20px 0 15px;">📈 منحنى التدرج | Gradation Curve</h3>
+                <h3 style="margin: 20px 0 10px;">📈 منحنى التدرج | Gradation Curve</h3>
+
+                <!-- Specification Limits -->
+                <div class="card" style="margin-bottom:12px;padding:15px;">
+                    <div class="card-header" style="font-size:1rem;margin-bottom:12px;">
+                        📐 حدود المواصفة | Specification Limits
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <button class="btn btn-secondary" style="padding:5px 12px;font-size:0.8rem;" onclick="clearSpecLimits()">🗑️ مسح</button>
+                            <button class="btn btn-success"   style="padding:5px 12px;font-size:0.8rem;" onclick="applySpecLimits()">✔ تطبيق</button>
+                        </div>
+                    </div>
+                    <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:10px;">
+                        أدخل % المار عند كل منخل لرسم حد أعلى وحد أدنى على منحنى التدرج
+                    </div>
+                    <div class="table-container">
+                        <table style="font-size:0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>المنخل / Sieve</th>
+                                    <th>الفتحة (mm)</th>
+                                    <th style="color:#0d6efd;">الحد الأدنى % Min Passing</th>
+                                    <th style="color:#dc3545;">الحد الأعلى % Max Passing</th>
+                                </tr>
+                            </thead>
+                            <tbody id="specLimitsTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div class="chart-container">
                     <canvas id="gradationChart"></canvas>
                 </div>
+
+                <!-- QC/QA Compliance Panel -->
+                <div id="qcPanel" style="display:none;margin-top:20px;"></div>
 
                 <div class="text-center mt-20">
                     <button class="btn btn-success" onclick="exportCSV()">📥 تصدير CSV | Export CSV</button>
@@ -1534,196 +1945,407 @@
 
         <!-- Tab 4: Final Report -->
         <div id="tab4" class="tab-content">
-            <div style="max-width: 210mm; margin: 0 auto; background: white; padding: 20mm; min-height: 297mm;">
-                <!-- Report Header -->
-                <div class="report-logo" id="reportLogoContainer"></div>
-                
-                <div class="report-header">
-                    <h1 id="reportLabName">-</h1>
-                    <div class="standard">ASTM D6913/D6913M-17</div>
-                    <div class="standard">Standard Test Methods for Particle-Size Distribution (Gradation) of Soils Using Sieve Analysis</div>
-                    <div class="standard">الطرق القياسية لتوزيع حجم الجسيمات (التدرج) للتربة باستخدام تحليل المناخل</div>
-                    <div class="report-number">تقرير رقم | Report No.: <span id="reportReportNumber">-</span></div>
-                    <div class="report-number">التاريخ | Date: <span id="reportReportDate">-</span></div>
-                </div>
+            <div class="rpt-actions no-print" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:12px 0;">
+                <button class="btn btn-success" onclick="window.print()">🖨️ طباعة / PDF</button>
+                <button class="btn btn-secondary" onclick="generateFinalReport()">🔄 تحديث البيانات</button>
+                <button class="btn" onclick="saveReportToDevice()" style="background:#0d6efd;">💾 حفظ النتائج على الجهاز</button>
+                <button class="btn" id="lockBtn" onclick="toggleLock()" style="background:#6f42c1;">🔒 قفل النتائج</button>
+            </div>
 
-                <!-- Project Information -->
-                <div class="report-section">
-                    <h2>معلومات المشروع | Project Information</h2>
-                    <div class="report-grid">
-                        <div class="report-item">
-                            <div class="label">المشروع | Project:</div>
-                            <div class="value" id="reportProjectName">-</div>
-                        </div>
-                        <div class="report-item">
-                            <div class="label">رقم المشروع | Project No.:</div>
-                            <div class="value" id="reportProjectNumber">-</div>
-                        </div>
-                        <div class="report-item">
-                            <div class="label">العميل | Client:</div>
-                            <div class="value" id="reportClient">-</div>
-                        </div>
-                        <div class="report-item">
-                            <div class="label">الموقع | Location:</div>
-                            <div class="value" id="reportLocation">-</div>
-                        </div>
+            <div id="rpt-wrap">
+                <!-- Page number -->
+                <div class="rpt-pgnum">Page 1 of 1</div>
+                <!-- Lab name -->
+                <div id="r-labname-bar" style="text-align:center;font-size:9pt;font-weight:bold;padding:2px 4px;border-bottom:1px solid #000;background:#f0f0f0;"></div>
+                <!-- Main title -->
+                <div class="rpt-main-title">MATERIALS AND DESIGN</div>
+                <div class="rpt-sub-title">SOIL GRADATION REPORT (ASTM D6913/D6913M-17)</div>
+
+                <!-- PROJECT INFORMATION -->
+                <div class="rpt-dark-hdr">PROJECT INFORMATION</div>
+                <div class="r">
+                    <div class="c" style="flex:1.6"><span class="lb">Project Name: </span><span class="vl vl-lg" id="r-proj"></span></div>
+                    <div class="c" style="flex:1"><span class="lb">Report Number: </span><span class="vl" id="r-repno"></span></div>
+                </div>
+                <div class="r">
+                    <div class="c" style="flex:1.6"><span class="lb">Client / Contractor Name: </span><span class="vl vl-md" id="r-client"></span></div>
+                    <div class="c" style="flex:1"><span class="lb">Report Date: </span><span class="vl" id="r-repdate"></span></div>
+                </div>
+                <div class="r">
+                    <div class="c" style="flex:1"><span class="lb">Sample ID: </span><span class="vl" id="r-sid"></span></div>
+                    <div class="c" style="flex:1"><span class="lb">Sample Date: </span><span class="vl" id="r-sdate"></span></div>
+                    <div class="c" style="flex:1"><span class="lb">Test Date: </span><span class="vl" id="r-tdate"></span></div>
+                </div>
+                <div class="r">
+                    <div class="c" style="flex:1"><span class="lb">Date Received: </span><span class="vl" id="r-recv"></span></div>
+                    <div class="c" style="flex:1.6"><span class="lb">Location / Station / Borrow Pit: </span><span class="vl vl-md" id="r-loc"></span></div>
+                </div>
+                <div class="r">
+                    <div class="c" style="flex:1.6"><span class="lb">Soil Description: </span><span class="vl vl-lg" id="r-desc"></span></div>
+                    <div class="c" style="flex:1"><span class="lb">Max Particle Size (mm): </span><span class="vl vl-sm" id="r-maxps"></span></div>
+                </div>
+                <div class="r">
+                    <div class="c">
+                        <span class="lb">Sample Type:</span>&nbsp;
+                        <span class="ck" id="ck-dist"></span> Disturbed&nbsp;&nbsp;
+                        <span class="ck" id="ck-undist"></span> Undisturbed&nbsp;&nbsp;&nbsp;&nbsp;
+                        <span class="lb">Preparation:</span>&nbsp;
+                        <span class="ck" id="ck-dry"></span> Dry (D6913 §10.3)&nbsp;&nbsp;
+                        <span class="ck" id="ck-wet"></span> Wet (ASTM D2217)
                     </div>
                 </div>
-
-                <!-- Sample Information -->
-                <div class="report-section">
-                    <h2>معلومات العينة | Sample Information</h2>
-                    <div class="report-grid">
-                        <div class="report-item">
-                            <div class="label">رقم العينة | Sample ID:</div>
-                            <div class="value" id="reportSampleId">-</div>
-                        </div>
-                        <div class="report-item">
-                            <div class="label">الوصف | Description:</div>
-                            <div class="value" id="reportSampleDescription">-</div>
-                        </div>
-                        <div class="report-item">
-                            <div class="label">تاريخ الاختبار | Test Date:</div>
-                            <div class="value" id="reportTestDate">-</div>
-                        </div>
-                        <div class="report-item">
-                            <div class="label">وضع الاختبار | Test Mode:</div>
-                            <div class="value" id="reportTestMode">-</div>
-                        </div>
+                <div class="r">
+                    <div class="c">
+                        Environmental Conditions — Temp:&nbsp;<span class="vl vl-sm" id="r-temp"></span>&nbsp;°C
+                        &nbsp;&nbsp;&nbsp;&nbsp;Humidity:&nbsp;<span class="vl vl-sm" id="r-hum"></span>&nbsp;%
                     </div>
                 </div>
 
-                <!-- Test Configuration -->
-                <div class="report-section">
-                    <h2>إعدادات الاختبار | Test Configuration</h2>
-                    <div class="report-grid">
-                        <div class="report-item">
-                            <div class="label">الطريقة | Method:</div>
-                            <div class="value" id="reportMethod">-</div>
-                        </div>
-                        <div class="report-item">
-                            <div class="label">الحد الأقصى للجسيمات | Max Particle Size:</div>
-                            <div class="value" id="reportMaxParticleSize">-</div>
-                        </div>
-                        <div class="report-item">
-                            <div class="label">كتلة العينة | Specimen Mass:</div>
-                            <div class="value" id="reportSpecimenMass">-</div>
-                        </div>
-                        <div class="report-item">
-                            <div class="label">درجة الحرارة | Temperature:</div>
-                            <div class="value" id="reportTemperature">-</div>
-                        </div>
+                <!-- ISO 17025 note merged into header row -->
+
+
+                <!-- Test Procedure Details -->
+                <div class="rpt-dark-hdr">Test Procedure Details</div>
+                <div style="padding:1.5px 4px;border-bottom:1px solid #000;font-size:8pt;line-height:1.4;direction:ltr;">
+                    <div style="display:flex;gap:16px;border-bottom:1px solid #eee;padding-bottom:1px;margin-bottom:1px;">
+                        <span><strong>Gradation:</strong> <span class="ck" id="ck-single-stage"></span> Single Stage &nbsp;<span class="ck" id="ck-multi-stage"></span> Multi Stage</span>
+                        <span><strong>Splitter:</strong> <span class="ck" id="ck-single-split"></span> Single Split &nbsp;<span class="ck" id="ck-dual-split"></span> Dual Split</span>
+                        <span><strong>Method:</strong> <span class="ck" id="ck-methA"></span> A (all sizes) &nbsp;<span class="ck" id="ck-methB"></span> B (≤No.4)</span>
+                    </div>
+                    <div style="display:flex;gap:16px;border-bottom:1px solid #eee;padding-bottom:1px;margin-bottom:1px;">
+                        <span><strong>Sieving:</strong> <span class="ck" id="ck-manual"></span> Manual &nbsp;<span class="ck" id="ck-mechanical"></span> Mechanical &nbsp;<span class="ck" id="ck-combined"></span> Combined</span>
+                        <span><strong>Duration:</strong> <span id="r-shake-dur" style="border-bottom:1px solid #555;display:inline-block;min-width:22px;">&nbsp;</span> min</span>
+                        <span><strong>Wash No.200:</strong> <span class="ck" id="ck-wash-yes"></span> Yes &nbsp;<span class="ck" id="ck-wash-no"></span> No</span>
+                    </div>
+                    <div style="display:flex;gap:16px;">
+                        <span><strong>Initial Dry Mass:</strong> <span id="r-ini-mass" style="border-bottom:1px solid #555;display:inline-block;min-width:45px;">&nbsp;</span> g</span>
+                        <span><strong>Mass After Sieving:</strong> <span id="r-aft-mass" style="border-bottom:1px solid #555;display:inline-block;min-width:45px;">&nbsp;</span> g</span>
+                        <span><strong>Mass Loss:</strong> <span id="r-mass-loss" style="border-bottom:1px solid #555;display:inline-block;min-width:28px;">&nbsp;</span>% &nbsp;<em style="color:#555;">[△&gt;2%: retest per §8.5]</em></span>
                     </div>
                 </div>
 
-                <!-- Classification Summary -->
-                <div class="report-section">
-                    <h2>ملخص التصنيف | Classification Summary</h2>
-                    <div class="classification-grid">
-                        <div class="class-box gravel">
-                            <h4>الحصى | GRAVEL</h4>
-                            <div class="value" id="reportGravel">-</div>
-                            <div class="label">> 4.75 mm</div>
-                        </div>
-                        <div class="class-box sand">
-                            <h4>الرمل | SAND</h4>
-                            <div class="value" id="reportSand">-</div>
-                            <div class="label">4.75 - 0.075 mm</div>
-                        </div>
-                        <div class="class-box fines">
-                            <h4>السلت والطين | FINES</h4>
-                            <div class="value" id="reportFines">-</div>
-                            <div class="label">< 0.075 mm</div>
-                        </div>
-                    </div>
-                    <div class="classification-grid mt-20">
-                        <div class="class-box uscs">
-                            <h4>USCS</h4>
-                            <div class="value" id="reportUSCS">-</div>
-                            <div class="label" id="reportUSCSDesc">-</div>
-                        </div>
-                        <div class="class-box aashto">
-                            <h4>AASHTO</h4>
-                            <div class="value" id="reportAASHTO">-</div>
-                            <div class="label" id="reportAASHTODesc">-</div>
-                        </div>
-                        <div class="class-box coefficients">
-                            <h4>Cu</h4>
-                            <div class="value" id="reportCu">-</div>
-                            <div class="label">D₆₀/D₁₀</div>
-                        </div>
-                        <div class="class-box coefficients">
-                            <h4>Cc</h4>
-                            <div class="value" id="reportCc">-</div>
-                            <div class="label">D₃₀²/(D₁₀×D₆₀)</div>
-                        </div>
-                    </div>
+                <!-- Sieve Analysis Data Table -->
+                <div class="rpt-dark-hdr">Sieve Analysis Data Table</div>
+                <table class="sv-tbl">
+                    <thead>
+                        <tr>
+                            <th style="width:26%">Sieve Size<br><span style="font-weight:normal;font-size:5.5pt;">US Size / mm Opening</span></th>
+                            <th style="width:18.5%">Individual Mass<br>Retained (g)</th>
+                            <th style="width:18.5%">Cumulative Mass<br>Retained (g)</th>
+                            <th style="width:18.5%">Percent Retained<br>(%)</th>
+                            <th style="width:18.5%">Percent Passing<br>(%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rpt-sieve-body"></tbody>
+                    <tfoot>
+                        <tr class="total-row"><td><strong>TOTAL</strong></td><td id="rpt-total-mr" colspan="2"></td><td colspan="2"></td></tr>
+                    </tfoot>
+                </table>
+                <div class="frac-row">
+                    <strong>% Gravel (&gt;4.75mm):</strong>&nbsp;<span id="rpt-frac-gravel" style="border-bottom:1px solid #555;display:inline-block;min-width:28px;text-align:center;"></span>%
+                    &nbsp;|&nbsp;
+                    <strong>% Sand (0.075–4.75mm):</strong>&nbsp;<span id="rpt-frac-sand" style="border-bottom:1px solid #555;display:inline-block;min-width:28px;text-align:center;"></span>%
+                    &nbsp;|&nbsp;
+                    <strong>% Fines (&lt;0.075mm):</strong>&nbsp;<span id="rpt-frac-fines" style="border-bottom:1px solid #555;display:inline-block;min-width:28px;text-align:center;"></span>%
+                </div>
+                <div class="frac-row" style="border-bottom:1px solid #000;">
+                    <strong>Mass Loss = </strong><span id="rpt-mass-loss2" style="border-bottom:1px solid #555;display:inline-block;min-width:30px;"></span>%&nbsp;(Total after sieving vs. initial mass)
                 </div>
 
-                <!-- Gradation Results Table -->
-                <div class="report-section">
-                    <h2>نتائج التدرج | Gradation Results</h2>
-                    <div class="table-container">
-                        <table id="reportGradationTable">
-                            <thead>
-                                <tr>
-                                    <th>المنخل<br>Sieve</th>
-                                    <th>الفتحة (mm)<br>Opening</th>
-                                    <th>% المحجوزة<br>% Retained</th>
-                                    <th>% المحجوزة التراكمية<br>Cumulative %R</th>
-                                    <th>% المارة<br>% Passing</th>
-                                </tr>
-                            </thead>
-                            <tbody id="reportGradationTableBody"></tbody>
-                        </table>
-                    </div>
+                <!-- Grain Size Distribution Curve -->
+                <div class="rpt-dark-hdr">Grain Size Distribution Curve</div>
+                <div style="display:flex;border-bottom:1px dashed #888;font-size:5.5pt;font-weight:bold;direction:ltr;">
+                    <div style="flex:1.2;text-align:center;padding:1px 0;border-right:1px dashed #888;">| [FINES]</div>
+                    <div style="flex:1.1;text-align:center;padding:1px 0;border-right:1px dashed #888;">| [FINE SAND]</div>
+                    <div style="flex:1.0;text-align:center;padding:1px 0;border-right:1px dashed #888;">| [MED SAND]</div>
+                    <div style="flex:1.3;text-align:center;padding:1px 0;border-right:1px dashed #888;">| [COARSE SAND]</div>
+                    <div style="flex:1.2;text-align:center;padding:1px 0;">| [GRAVEL] |</div>
+                </div>
+                <div class="chart-area"><canvas id="reportGradationChart"></canvas></div>
+
+                <!-- Classification and Summary Data -->
+                <div class="rpt-dark-hdr">Classification and Summary Data</div>
+                <div style="border-bottom:1px solid #000;">
+                    <div class="cls-row"><span class="lb2">Row 1: Atterberg Limits (ASTM D4318):</span> LL:&nbsp;<span class="vl2" id="r-ll"></span>&nbsp;&nbsp; PL:&nbsp;<span class="vl2" id="r-pl"></span>&nbsp;&nbsp; PI:&nbsp;<span class="vl2" id="r-pi"></span></div>
+                    <div class="cls-row"><span class="lb2">Row 2: Particle Parameters:</span> D10:&nbsp;<span class="vl2" id="r-d10"></span>&nbsp;mm&nbsp;&nbsp; D30:&nbsp;<span class="vl2" id="r-d30"></span>&nbsp;mm&nbsp;&nbsp; D60:&nbsp;<span class="vl2" id="r-d60"></span>&nbsp;mm</div>
+                    <div class="cls-row"><span class="lb2">Row 3: Calculated Coefficients:</span> Cc (Curvature):&nbsp;<span class="vl2" id="r-cc"></span>&nbsp;&nbsp;|&nbsp;&nbsp; Cu (Uniformity):&nbsp;<span class="vl2" id="r-cu"></span></div>
+                    <div class="cls-row"><span class="lb2">Row 4: Soil Classification USCS (ASTM D2487):</span>&nbsp;<span class="vl2" style="min-width:160px;" id="r-uscs"></span></div>
+                    <div class="cls-row"><span class="lb2">Row 5: Soil Classification AASHTO (ASTM D3282):</span>&nbsp;<span class="vl2" style="min-width:160px;" id="r-aashto"></span></div>
+                    <div class="cls-row"><span class="lb2">Row 6: % Gravel:</span>&nbsp;<span class="vl2" id="r-g2"></span>%&nbsp;&nbsp; % Sand:&nbsp;<span class="vl2" id="r-s2"></span>%&nbsp;&nbsp; % Fines:&nbsp;<span class="vl2" id="r-f2"></span>%</div>
+                    <div class="cls-row"><span class="lb2">Row 7: Combined with Hydrometer Test (ASTM D7928):</span>&nbsp;<span class="ck" id="ck-hydro-yes"></span> Yes (attach report)&nbsp;&nbsp;<span class="ck" id="ck-hydro-no"></span> No</div>
                 </div>
 
-                <!-- Gradation Curve -->
-                <div class="report-section">
-                    <h2>منحنى التدرج | Gradation Curve</h2>
-                    <div class="chart-container" style="height: 400px; page-break-inside: avoid;">
-                        <canvas id="reportGradationChart"></canvas>
+                <!-- Authorization Footer -->
+                <div class="rpt-dark-hdr">AUTHORIZATION FOOTER</div>
+                <div style="padding:1.5px 4px;border-bottom:1px solid #000;font-size:8pt;direction:ltr;"><strong>Remarks: </strong><span id="r-remarks" style="border-bottom:1px solid #555;display:inline-block;min-width:250px;">&nbsp;</span></div>
+                <div class="sig-outer">
+                    <div class="sig-hdr">
+                        <div class="sh">Quality Manager</div>
+                        <div class="sh">Technical Manager</div>
+                        <div class="sh">Independent Technical Reviewer<br>(ISO 17025)</div>
+                    </div>
+                    <div class="sig-body">
+                        <div class="sb">
+                            <div class="sig-line"><span class="sl">Name:</span><span class="sv" id="sig-qm">&nbsp;</span></div>
+                            <div class="sig-line"><span class="sl">Signature:</span><span class="sv" style="min-height:13px;">&nbsp;</span></div>
+                            <div class="sig-line"><span class="sl">Date:</span><span class="sv">&nbsp;</span></div>
+                        </div>
+                        <div class="sb">
+                            <div class="sig-line"><span class="sl">Name:</span><span class="sv" id="sig-tm">&nbsp;</span></div>
+                            <div class="sig-line"><span class="sl">Signature:</span><span class="sv" style="min-height:13px;">&nbsp;</span></div>
+                            <div class="sig-line"><span class="sl">Date:</span><span class="sv">&nbsp;</span></div>
+                        </div>
+                        <div class="sb">
+                            <div class="sig-line"><span class="sl">Name:</span><span class="sv" id="sig-ir">&nbsp;</span></div>
+                            <div class="sig-line"><span class="sl">Signature:</span><span class="sv" style="min-height:13px;">&nbsp;</span></div>
+                            <div class="sig-line"><span class="sl">Date:</span><span class="sv">&nbsp;</span></div>
+                        </div>
                     </div>
                 </div>
+            </div><!-- end #rpt-wrap -->
+        </div>
+    </div>
 
-                <!-- Notes and Remarks -->
-                <div class="report-section">
-                    <h2>ملاحظات | Notes & Remarks</h2>
-                    <div class="alert alert-info">
-                        <p><strong>البيان | Statement:</strong></p>
-                        <p>النتائج محسوبة من البيانات المُدخلة وفقاً لسير العمل المحدد في ASTM D6913. المستخدم مسؤول عن تمثيل العينة، التحضير، الغسل، اختيار المناخل، ومراقبة الجودة المختبرية.</p>
-                        <p>Results are calculated from the entered data in accordance with the selected ASTM D6913 workflow. The user remains responsible for specimen representativeness, preparation, washing, sieve selection, and laboratory quality control.</p>
-                    </div>
-                    <div id="reportAdditionalNotes"></div>
+    <!-- User Guide Modal -->
+    <div id="userGuideModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;overflow-y:auto;padding:20px;">
+        <div style="max-width:860px;margin:0 auto;background:var(--bg-secondary);border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.4);overflow:hidden;">
+            <div style="background:linear-gradient(135deg,#0a2342,#0d6efd);color:#fff;padding:20px 25px;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <div style="font-size:1.3rem;font-weight:700;">&#x1F4D6; دليل المستخدم الشامل</div>
+                    <div style="font-size:0.85rem;opacity:0.8;margin-top:3px;">ASTM D6913/D6913M-17 — إجراء الاختبار والاستخدام</div>
                 </div>
+                <button onclick="document.getElementById('userGuideModal').style.display='none'" style="background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:1.5rem;width:38px;height:38px;border-radius:50%;cursor:pointer;">&#xD7;</button>
+            </div>
+            <div id="guide-tabbar" style="display:flex;background:var(--bg-tertiary);border-bottom:2px solid var(--border-color);flex-wrap:wrap;">
+                <button onclick="showGuideTab('use')" id="gtab-use" style="flex:1;min-width:100px;padding:10px 6px;border:none;background:#0d6efd;color:#fff;cursor:pointer;font-weight:700;font-size:0.82rem;">&#x1F4F1; الاستخدام</button>
+                <button onclick="showGuideTab('single')" id="gtab-single" style="flex:1;min-width:100px;padding:10px 6px;border:none;background:var(--bg-tertiary);color:var(--text-primary);cursor:pointer;font-weight:700;font-size:0.82rem;">&#x1F535; المفرد</button>
+                <button onclick="showGuideTab('comp1')" id="gtab-comp1" style="flex:1;min-width:100px;padding:10px 6px;border:none;background:var(--bg-tertiary);color:var(--text-primary);cursor:pointer;font-weight:700;font-size:0.82rem;">&#x1F7E1; مركب أحادي</button>
+                <button onclick="showGuideTab('comp2')" id="gtab-comp2" style="flex:1;min-width:100px;padding:10px 6px;border:none;background:var(--bg-tertiary);color:var(--text-primary);cursor:pointer;font-weight:700;font-size:0.82rem;">&#x1F534; مركب مزدوج</button>
+                <button onclick="showGuideTab('notes')" id="gtab-notes" style="flex:1;min-width:100px;padding:10px 6px;border:none;background:var(--bg-tertiary);color:var(--text-primary);cursor:pointer;font-weight:700;font-size:0.82rem;">&#x26A0;&#xFE0F; تنبيهات</button>
+            </div>
+            <div style="padding:20px;direction:rtl;font-family:'Segoe UI',Tahoma,sans-serif;color:var(--text-primary);line-height:1.75;font-size:0.91rem;max-height:68vh;overflow-y:auto;">
 
-                <!-- Signatures -->
-                <div class="signature-section">
-                    <div class="signature-box">
-                        <div class="title">أعده | Prepared By</div>
-                        <div class="name" id="reportTechnician">-</div>
-                        <div class="line"></div>
-                        <div class="label">التوقيع والتاريخ | Signature & Date</div>
+            <!-- TAB: USE -->
+            <div id="guide-content-use">
+                <div style="background:var(--bg-tertiary);border-radius:8px;padding:14px;margin-bottom:12px;border-right:5px solid #0d6efd;">
+                    <strong style="color:#0d6efd;">&#x1F4CB; الخطوة 1 — بيانات المشروع والمعمل (تاب 1)</strong>
+                    <ul style="padding-right:18px;margin:6px 0 0;">
+                        <li><strong>اسم المعمل:</strong> يظهر في رأس التقرير تلقائياً.</li>
+                        <li><strong>رقم التقرير / الفني / المراجع / المعتمد:</strong> تظهر في توقيعات التقرير.</li>
+                        <li><strong>معرّفات الأجهزة:</strong> Balance / Sieve Shaker / Oven — متطلبات ISO 17025.</li>
+                        <li><strong>بيانات العينة:</strong> Sample ID، وصف التربة، تواريخ الاستلام والاختبار.</li>
+                        <li><strong>أتربرج:</strong> LL و PL — يحسب PI تلقائياً لتصنيف USCS و AASHTO.</li>
+                    </ul>
+                </div>
+                <div style="background:var(--bg-tertiary);border-radius:8px;padding:14px;margin-bottom:12px;border-right:5px solid #198754;">
+                    <strong style="color:#198754;">&#x2697;&#xFE0F; الخطوة 2 — إدخال بيانات الغربلة (تاب 2)</strong>
+                    <ul style="padding-right:18px;margin:6px 0 0;">
+                        <li>اختر <strong>قطر المناخل</strong> (200/305/370×580 mm) — يؤثر على حدود الحمل الأقصى Table 3.</li>
+                        <li>اختر <strong>Method A</strong> أو <strong>Method B</strong> ثم نوع الغربلة (Single / Composite).</li>
+                        <li>أدخل <strong>CMR</strong> لكل منخل ← اضغط "احسب" ← تُحسب النسب تلقائياً.</li>
+                    </ul>
+                </div>
+                <div style="background:var(--bg-tertiary);border-radius:8px;padding:14px;margin-bottom:12px;border-right:5px solid #ffc107;">
+                    <strong style="color:#997404;">&#x1F4CA; الخطوة 3 — النتائج والرسم (تاب 3)</strong>
+                    <ul style="padding-right:18px;margin:6px 0 0;">
+                        <li>اضغط "عرض النتائج" ← D10/D30/D60، Cu، Cc، USCS، AASHTO.</li>
+                        <li>أدخل حدود المواصفة (Min/Max Passing) لرسمها على منحنى التدرج.</li>
+                        <li>تحقق من <strong>لوحة QC/QA</strong> — فحوصات المطابقة مع المواصفة تلقائياً.</li>
+                    </ul>
+                </div>
+                <div style="background:var(--bg-tertiary);border-radius:8px;padding:14px;border-right:5px solid #dc3545;">
+                    <strong style="color:#dc3545;">&#x1F4C4; الخطوة 4 — التقرير النهائي (تاب 4)</strong>
+                    <ul style="padding-right:18px;margin:6px 0 0;">
+                        <li>اضغط "تحديث البيانات" ← "&#x1F5A8;&#xFE0F; طباعة / PDF" لحفظ التقرير.</li>
+                        <li>"&#x1F4BE; حفظ النتائج على الجهاز" ← ملف JSON يُحمَّل لاحقاً بزر "تحميل".</li>
+                        <li>"&#x1F512; قفل النتائج" ← يجمّد جميع البيانات ويمنع التعديل.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- TAB: SINGLE -->
+            <div id="guide-content-single" style="display:none;">
+                <div style="background:#e3f2fd;border-radius:8px;padding:12px;margin-bottom:12px;border-right:5px solid #0d6efd;">
+                    <strong style="color:#0d6efd;">&#x1F535; متى تستخدمها؟ — §10.3.1</strong><br>
+                    الحجم الأقصى <strong>≤ 9.5 mm</strong> مع Method A، أو <strong>≤ 4.75 mm</strong> مع Method B.
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #0d6efd;">
+                        <strong style="color:#0d6efd;">1&#xFE0F;&#x20E3; تحضير العينة — §10.5.1</strong>
+                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
+                            <li>خذ عينة ممثلة بالكيل من 5 مواضع مختلفة (Miniature Stockpile Sampling).</li>
+                            <li>جفّفها في الفرن 110±5°C حتى جفاف كامل. سجّل <strong>S,Md</strong> (الكتلة الجافة بالجرام).</li>
+                            <li>تحقق أن S,Md ≥ الحد الأدنى من Table 2 (مثال: Dmax=4.75mm → 75g Method A).</li>
+                        </ul>
                     </div>
-                    <div class="signature-box">
-                        <div class="title">راجعه | Reviewed By</div>
-                        <div class="name" id="reportReviewer">-</div>
-                        <div class="line"></div>
-                        <div class="label">التوقيع والتاريخ | Signature & Date</div>
+                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #17a2b8;">
+                        <strong style="color:#17a2b8;">2&#xFE0F;&#x20E3; الغسل على No.200 — §11.4.3</strong>
+                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
+                            <li>أنقع العينة في الماء ≥ 5 دقائق حتى تتفكك التكتلات.</li>
+                            <li>اغسل على منخل No.200 (75µm) حتى يصبح ماء الغسل صافياً تماماً.</li>
+                            <li>أعد المادة المحجوزة إلى الحاوية، جفّفها، سجّل الكتلة الجافة بعد الغسل <strong>SwMd</strong>.</li>
+                        </ul>
                     </div>
-                    <div class="signature-box">
-                        <div class="title">اعتمده | Approved By</div>
-                        <div class="name" id="reportApprover">-</div>
-                        <div class="line"></div>
-                        <div class="label">التوقيع والتاريخ | Signature & Date</div>
+                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #6f42c1;">
+                        <strong style="color:#6f42c1;">3&#xFE0F;&#x20E3; الغربلة الجافة — §11.4.4</strong>
+                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
+                            <li>رتّب المناخل من الأكبر أعلى حتى No.200 ثم الصينية (Pan) أسفل.</li>
+                            <li>ضع المادة الجافة المغسولة على القمة ← غطِّ المجموعة ← شغّل الهزّاز <strong>10–20 دقيقة</strong> (§8.2).</li>
+                            <li>تحقق من عدم تحميل أي منخل زيادة عن Table 3 (حسب قطر المنخل المختار).</li>
+                        </ul>
+                    </div>
+                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #198754;">
+                        <strong style="color:#198754;">4&#xFE0F;&#x20E3; قياس CMR وإدخاله — §11.4.5</strong>
+                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
+                            <li>ابدأ من أكبر منخل: أضف محتواه إلى الحاوية التراكمية وزِن → <strong>CMR₁</strong>.</li>
+                            <li>أضف محتوى المنخل التالي وزِن → <strong>CMR₂ = CMR₁ + ما على هذا المنخل</strong>.</li>
+                            <li>استمر حتى الصينية. الصينية = SwMd (≈ S,Md إذا كان فقد الغسل ≤ 2%).</li>
+                            <li><strong>في البرنامج:</strong> أدخل CMRₙ لكل منخل ← اضغط "احسب" ← تُحسب كل النسب.</li>
+                        </ul>
+                    </div>
+                    <div style="background:#fff3cd;border-radius:8px;padding:12px;border-right:4px solid #ffc107;">
+                        <strong style="color:#664d03;">5&#xFE0F;&#x20E3; التحقق من فقد الكتلة — §8.5</strong><br>
+                        <span style="font-size:0.88rem;">فقد الكتلة % = (S,Md − SwMd) ÷ S,Md × 100 — يجب أن يكون <strong>≤ 2%</strong> وإلا يُعاد الاختبار.</span>
                     </div>
                 </div>
+            </div>
+
+            <!-- TAB: COMPOSITE SINGLE -->
+            <div id="guide-content-comp1" style="display:none;">
+                <div style="background:#fff8e1;border-radius:8px;padding:12px;margin-bottom:12px;border-right:5px solid #ffc107;">
+                    <strong style="color:#664d03;">&#x1F7E1; متى تستخدمها؟ — §10.3.2</strong><br>
+                    الحجم الأقصى <strong>&gt;9.5 mm</strong> أو حين تكون الكتلة كبيرة للغربلة المفردة. يُستخدم <strong>Method A فقط</strong>.
+                </div>
+                <div style="background:#fff;border-radius:6px;padding:10px;margin-bottom:10px;border:1px solid var(--border-color);text-align:center;font-size:0.88rem;">
+                    العينة تُفصَل عند منخل محدد إلى:<br>
+                    <span style="color:#0d6efd;font-weight:700;">الجزء الخشن (CP)</span> — يُغربَل كاملاً &nbsp;|&nbsp;
+                    <span style="color:#198754;font-weight:700;">الجزء الأدق (FP)</span> — يُؤخذ منه عينة فرعية (SubS)
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #6f42c1;">
+                        <strong style="color:#6f42c1;">1&#xFE0F;&#x20E3; اختر منخل الفصل — §10.5.2.2</strong>
+                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
+                            <li>عادةً No.4 (4.75mm) أو ⅜in (9.5mm) — الأكبر أسهل في الفصل.</li>
+                            <li>في البرنامج: من قائمة "Separating Sieve" اختر المنخل.</li>
+                        </ul>
+                    </div>
+                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #0d6efd;">
+                        <strong style="color:#0d6efd;">2&#xFE0F;&#x20E3; الفصل وتحضير CP — §11.5.1</strong>
+                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
+                            <li>مرّر العينة الرطبة الكاملة على منخل الفصل — اجمع CP و FP منفصلَين.</li>
+                            <li>تحقق أن المادة اللاصقة بـCP <strong>≤ 0.5% من S,Md</strong> — إذا تجاوزت اغسل CP وأضف الغسيل لـFP.</li>
+                            <li>اغسل CP وجفّفه — سجّل <strong>CP,Md</strong> (قبل الغسل) و <strong>CPwMd</strong> (بعده).</li>
+                            <li>غربِل CP على المناخل الخشنة — سجّل <strong>CP,CMRₙ</strong>. آخر PP = <strong>CSCF</strong> (بدقة 0.1%).</li>
+                        </ul>
+                    </div>
+                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #198754;">
+                        <strong style="color:#198754;">3&#xFE0F;&#x20E3; الحصول على SubS وغربلتها — §10.5.2.6 + §11.5.2</strong>
+                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
+                            <li>خذ SubS من FP الرطب بالكيل من 5 مواضع — حدّد <strong>wfp</strong> ثم احسب <strong>FP,Md = FP,Mm ÷ (1+wfp/100)</strong>.</li>
+                            <li>كتلة العينة الكلية: <strong>S,Md = CP,Md + FP,Md</strong>.</li>
+                            <li>اغسل SubS على No.200 وجفّفها — سجّل <strong>SubS,Md</strong>.</li>
+                            <li>غربِل SubS على المناخل الدقيقة — سجّل <strong>SubS,FCMRₙ</strong>.</li>
+                            <li>تحقق: المحجوز على أول منخل الدقيق <strong>≤ 2% من SubS,Md</strong>.</li>
+                        </ul>
+                    </div>
+                    <div style="background:#e8f5e9;border-radius:8px;padding:10px;border-right:4px solid #198754;font-size:0.88rem;">
+                        <strong>المعادلة النهائية (§12.5.2.1):</strong><br>
+                        PP للعينة الكلية = <strong>CSCF × (1 − SubS,FCMRₙ / SubS,Md)</strong><br>
+                        <em>البرنامج يحسبها تلقائياً بعد إدخال جميع القيم.</em>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: COMPOSITE DOUBLE -->
+            <div id="guide-content-comp2" style="display:none;">
+                <div style="background:#fce4ec;border-radius:8px;padding:12px;margin-bottom:12px;border-right:5px solid #dc3545;">
+                    <strong style="color:#b71c1c;">&#x1F534; متى تستخدمها؟ — §11.6</strong><br>
+                    الحجم الأقصى <strong>≥ 19.0 mm (¾ بوصة)</strong> — حيث يكون 1st SubS لا يزال خشناً جداً.
+                </div>
+                <div style="background:#fff;border-radius:6px;padding:10px;margin-bottom:10px;border:1px solid var(--border-color);text-align:center;font-size:0.88rem;">
+                    فصلان ← ثلاثة أجزاء:<br>
+                    <span style="color:#dc3545;font-weight:700;">1st CP</span> (يُغربَل) →
+                    <span style="color:#e67e22;font-weight:700;">1st SubS</span> يُفصَل مجدداً →
+                    <span style="color:#6f42c1;font-weight:700;">2nd CP + 2nd SubS</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #dc3545;">
+                        <strong style="color:#dc3545;">1&#xFE0F;&#x20E3; الفصل الأول — نفس خطوات Composite Single §11.5</strong>
+                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
+                            <li>اختر <strong>منخل الفصل الأول</strong> (عادةً ¾in = 19mm أو 1in = 25mm).</li>
+                            <li>فصّل العينة → غربِل 1st CP → احسب <strong>1st CSCF</strong> → خذ <strong>1st SubS</strong> من FP.</li>
+                        </ul>
+                    </div>
+                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #e67e22;">
+                        <strong style="color:#e67e22;">2&#xFE0F;&#x20E3; الفصل الثاني على 1st SubS — §11.6.1</strong>
+                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
+                            <li>اختر <strong>منخل الفصل الثاني</strong> (⅜in/9.5mm أو No.4/4.75mm أو No.10/2mm).</li>
+                            <li>مرّر 1st SubS ← <strong>2nd CP</strong> (محجوز) + <strong>2nd FP</strong> (مار).</li>
+                            <li>تحقق: محجوز على أول منخل 2nd CP <strong>≤ 2% من 1st SubS,Md</strong> (§11.6.3.2).</li>
+                        </ul>
+                    </div>
+                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #6f42c1;">
+                        <strong style="color:#6f42c1;">3&#xFE0F;&#x20E3; غربلة 2nd CP وتحديد 2nd CSCF — §11.6.3</strong>
+                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
+                            <li>اغسل 2nd CP وجفّفه — غربِله على المناخل بين منخلَي الفصل.</li>
+                            <li>احسب <strong>2nd CSCF</strong> = PP عند آخر منخل في 2nd CP.</li>
+                            <li>فقد الغسل ≤ 0.5% من <strong>1st SubS,Md</strong>.</li>
+                        </ul>
+                    </div>
+                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #198754;">
+                        <strong style="color:#198754;">4&#xFE0F;&#x20E3; غربلة 2nd SubS ودمج النتائج — §11.6.4 / §12.6</strong>
+                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
+                            <li>خذ 2nd SubS من 2nd FP بالتقسيم — اغسله على No.200 وجفّفه — غربِله.</li>
+                            <li>PP النهائية = <strong>2nd CSCF × (1 − 2nd SubS,FCMRₙ / 2nd SubS,Md)</strong></li>
+                            <li><strong>في البرنامج:</strong> أدخل بيانات الثلاثة أجزاء (1st CP / 2nd CP / 2nd SubS) ← اضغط "احسب".</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: NOTES -->
+            <div id="guide-content-notes" style="display:none;">
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                    <div style="background:#fff3cd;border-radius:8px;padding:14px;border-right:5px solid #ffc107;">
+                        <strong style="color:#664d03;">&#x26A0;&#xFE0F; حدود حرجة من المواصفة</strong>
+                        <ul style="padding-right:18px;margin:6px 0 0;font-size:0.88rem;">
+                            <li><strong>فقد الكتلة §8.5:</strong> ≤ 2% — إذا تجاوز يُعاد الاختبار.</li>
+                            <li><strong>تحميل المناخل §11.3 Table 3:</strong> يختلف حسب قطر المنخل — اختر القطر الصحيح في Tab 2.</li>
+                            <li><strong>أول منخل الجزء الأدق §11.5.2.2:</strong> محجوز ≤ 2% من SubS,Md.</li>
+                            <li><strong>CPL §10.5.2.3:</strong> فقد الغسل ≤ 0.5% من S,Md.</li>
+                            <li><strong>الكتلة الدنيا Table 2:</strong> تعتمد على الحجم الأقصى والطريقة.</li>
+                            <li><strong>فترة الهز §8.2:</strong> 10–20 دقيقة — يجب التحقق مسبقاً على كل جهاز.</li>
+                        </ul>
+                    </div>
+                    <div style="background:#e3f2fd;border-radius:8px;padding:14px;border-right:5px solid #0d6efd;">
+                        <strong style="color:#0d3c6e;">&#x1F4CC; قيود المواصفة §1.6</strong>
+                        <ul style="padding-right:18px;margin:6px 0 0;font-size:0.88rem;">
+                            <li>Method B: Single فقط + Dmax ≤ 4.75mm.</li>
+                            <li>Composite: Method A إلزامي.</li>
+                            <li>التقسيم بالمقسّم (Splitter): ≤ 2 عمليات فقط (§10.4.4).</li>
+                            <li>لا يُستخدم للتربة العضوية أو المحتوية على أسفلت أو مواد رابطة (§1.10).</li>
+                        </ul>
+                    </div>
+                    <div style="background:#f3e5f5;border-radius:8px;padding:14px;border-right:5px solid #6f42c1;">
+                        <strong style="color:#4a148c;">&#x1F50D; كيف تقرأ CMR بشكل صحيح؟</strong>
+                        <div style="font-size:0.88rem;margin-top:6px;">
+                            CMR = <strong>الكتلة التراكمية المحجوزة</strong> = مجموع ما على هذا المنخل + جميع المناخل الأكبر.<br><br>
+                            <strong>مثال:</strong> على No.10 = 18g | على No.20 = 25g | على No.40 = 30g<br>
+                            CMR No.10 = 18g | CMR No.20 = 43g | CMR No.40 = 73g<br>
+                            % Passing No.40 = (1 − 73÷500) × 100 = <strong>85.4%</strong> (S,Md = 500g)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            </div><!-- end scrollable -->
+            <div style="text-align:center;padding:14px;border-top:1px solid var(--border-color);background:var(--bg-tertiary);">
+                <button onclick="document.getElementById('userGuideModal').style.display='none'" class="btn btn-success" style="padding:10px 34px;">&#x2705; أغلق الدليل</button>
             </div>
         </div>
     </div>
 
-    <!-- Auto-save indicator -->
+        <!-- Auto-save indicator -->
     <div class="save-indicator" id="saveIndicator">💾 تم الحفظ | Saved</div>
 
     <script>
@@ -1732,6 +2354,223 @@
         let finalResults = [];
         let chartInstance = null;
         let reportChartInstance = null;
+        let resultsLocked = false;
+
+        // ── User Guide tab switching ──────────────────────────────────
+        function showGuideTab(name) {
+            ['use','single','comp1','comp2','notes'].forEach(t => {
+                const content = document.getElementById('guide-content-' + t);
+                const btn     = document.getElementById('gtab-' + t);
+                if (content) content.style.display = (t === name) ? 'block' : 'none';
+                if (btn) {
+                    btn.style.background = (t === name) ? '#0d6efd' : 'var(--bg-tertiary)';
+                    btn.style.color      = (t === name) ? '#fff'    : 'var(--text-primary)';
+                }
+            });
+        }
+
+        // ── User Guide ────────────────────────────────────────────────
+        function showUserGuide() {
+            document.getElementById('userGuideModal').style.display = 'block';
+        }
+
+        // ── Save Results to Device (JSON with full data + metadata) ──
+        function saveReportToDevice() {
+            if (!finalResults || finalResults.length === 0) {
+                alert('⚠️ لا توجد نتائج للحفظ. قم بالحساب أولاً.');
+                return;
+            }
+
+            const val = id => { const e = document.getElementById(id); return e ? (e.value || '') : ''; };
+
+            const payload = {
+                meta: {
+                    appName    : 'ASTM D6913 Gradation Calculator',
+                    standard   : 'ASTM D6913/D6913M-17',
+                    savedAt    : new Date().toISOString(),
+                    version    : '9.0'
+                },
+                project: {
+                    labName        : val('labName'),
+                    reportNumber   : val('reportNumber'),
+                    projectName    : val('projectName'),
+                    projectNumber  : val('projectNumber'),
+                    client         : val('client'),
+                    contractor     : val('contractor'),
+                    location       : val('location'),
+                    technicianName : val('technicianName'),
+                    reviewerName   : val('reviewerName'),
+                    approverName   : val('approverName')
+                },
+                specimen: {
+                    sampleId          : val('sampleId'),
+                    sampleDescription : val('sampleDescription'),
+                    sampleSource      : val('sampleSource'),
+                    dateReceived      : val('dateReceived'),
+                    testDate          : val('testDate'),
+                    reportDate        : val('reportDate'),
+                    maxParticleSize   : val('maxParticleSize'),
+                    method            : val('methodSelect'),
+                    sievingTechnique  : val('sievingTechnique'),
+                    testMode          : currentTestMode,
+                    labTemperature    : val('labTemperature'),
+                    relativeHumidity  : val('relativeHumidity')
+                },
+                atterberg: {
+                    liquidLimit    : val('liquidLimit'),
+                    plasticLimit   : val('plasticLimit'),
+                    plasticityIndex: val('plasticityIndex')
+                },
+                classification: {
+                    uscs  : (document.getElementById('uscsClass')       ? document.getElementById('uscsClass').textContent       : ''),
+                    uscsD : (document.getElementById('uscsDescription') ? document.getElementById('uscsDescription').textContent : ''),
+                    aashto: (document.getElementById('aashtoClass')     ? document.getElementById('aashtoClass').textContent     : ''),
+                    aashtoD:(document.getElementById('aashtoDescription')? document.getElementById('aashtoDescription').textContent : ''),
+                    d10   : (document.getElementById('d10Value')        ? document.getElementById('d10Value').textContent         : ''),
+                    d30   : (document.getElementById('d30Value')        ? document.getElementById('d30Value').textContent         : ''),
+                    d60   : (document.getElementById('d60Value')        ? document.getElementById('d60Value').textContent         : ''),
+                    cu    : (document.getElementById('cuValue')         ? document.getElementById('cuValue').textContent          : ''),
+                    cc    : (document.getElementById('ccValue')         ? document.getElementById('ccValue').textContent          : '')
+                },
+                sieveResults: finalResults,
+                specLimits: specLimits
+            };
+
+            const json = JSON.stringify(payload, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href     = url;
+            const sid  = val('sampleId') || 'sample';
+            const date = new Date().toISOString().split('T')[0];
+            a.download = `ASTM_D6913_Results_${sid}_${date}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            alert('✅ تم حفظ النتائج على جهازك بنجاح.\nيمكنك إعادة تحميل الملف لاحقاً بزر "تحميل" في الأعلى.');
+        }
+        let specLimits = {}; // { opening: { min, max } }
+
+        function initSpecLimitsTable() {
+            const tbody = document.getElementById('specLimitsTbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            // Only show meaningful sieves (skip very coarse ones without common specs)
+            const specSieves = standardSieves.filter(s => s.opening <= 75 && s.name !== 'Pan');
+            specSieves.forEach(s => {
+                const cached = specLimits[s.opening] || {};
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${s.name}</td>
+                    <td>${s.opening.toFixed(3)}</td>
+                    <td><input type="number" min="0" max="100" step="1" placeholder="—"
+                        style="width:80px;padding:4px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-primary);color:#0d6efd;font-weight:600;"
+                        id="spec_min_${s.opening}" value="${cached.min != null ? cached.min : ''}"></td>
+                    <td><input type="number" min="0" max="100" step="1" placeholder="—"
+                        style="width:80px;padding:4px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-primary);color:#dc3545;font-weight:600;"
+                        id="spec_max_${s.opening}" value="${cached.max != null ? cached.max : ''}"></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function applySpecLimits() {
+            specLimits = {};
+            standardSieves.filter(s => s.opening <= 75 && s.name !== 'Pan').forEach(s => {
+                const minEl = document.getElementById(`spec_min_${s.opening}`);
+                const maxEl = document.getElementById(`spec_max_${s.opening}`);
+                const minV  = minEl && minEl.value !== '' ? parseFloat(minEl.value) : null;
+                const maxV  = maxEl && maxEl.value !== '' ? parseFloat(maxEl.value) : null;
+                if (minV != null || maxV != null) specLimits[s.opening] = { min: minV, max: maxV };
+            });
+            updateGradationChart();
+        }
+
+        function clearSpecLimits() {
+            specLimits = {};
+            standardSieves.filter(s => s.opening <= 75 && s.name !== 'Pan').forEach(s => {
+                const minEl = document.getElementById(`spec_min_${s.opening}`);
+                const maxEl = document.getElementById(`spec_max_${s.opening}`);
+                if (minEl) minEl.value = '';
+                if (maxEl) maxEl.value = '';
+            });
+            updateGradationChart();
+        }
+
+        function buildSpecDatasets() {
+            if (!Object.keys(specLimits).length) return [];
+            const minPts = [], maxPts = [];
+            Object.keys(specLimits).sort((a,b) => parseFloat(a)-parseFloat(b)).forEach(op => {
+                const o = parseFloat(op);
+                const lim = specLimits[op];
+                if (lim.min != null) minPts.push({ x: o, y: lim.min });
+                if (lim.max != null) maxPts.push({ x: o, y: lim.max });
+            });
+            const datasets = [];
+            if (minPts.length) datasets.push({
+                label: 'Min Spec', data: minPts,
+                borderColor: '#0d6efd', borderWidth: 1.5, borderDash: [5,3],
+                backgroundColor: 'transparent', pointRadius: 4,
+                pointBackgroundColor: '#0d6efd', tension: 0.1, spanGaps: false
+            });
+            if (maxPts.length) datasets.push({
+                label: 'Max Spec', data: maxPts,
+                borderColor: '#dc3545', borderWidth: 1.5, borderDash: [5,3],
+                backgroundColor: 'transparent', pointRadius: 4,
+                pointBackgroundColor: '#dc3545', tension: 0.1, spanGaps: false
+            });
+            return datasets;
+        }
+        function toggleLock() {
+            resultsLocked = !resultsLocked;
+            applyLockState();
+        }
+
+        function applyLockState() {
+            const btn = document.getElementById('lockBtn');
+            const locked = resultsLocked;
+
+            // Style the button
+            btn.textContent = locked ? '🔓 Unlock Results' : '🔒 Lock Results';
+            btn.style.background = locked ? '#dc3545' : '#6f42c1';
+
+            // Disable / enable all data-entry inputs across all sieve tables
+            const inputSelectors = [
+                '#singleSieveTableBody input',
+                '#compCoarserTableBody input',
+                '#compFinerTableBody input',
+                '#double1stCoarserTableBody input',
+                '#double2ndCoarserTableBody input',
+                '#double2ndSubSTableBody input',
+                '#tab2 input[type="number"]',
+                '#tab2 select',
+                '#tab1 input',
+                '#tab1 select',
+                '#tab1 textarea'
+            ];
+            inputSelectors.forEach(sel => {
+                document.querySelectorAll(sel).forEach(el => {
+                    el.disabled = locked;
+                    el.style.opacity = locked ? '0.6' : '';
+                    el.style.cursor  = locked ? 'not-allowed' : '';
+                });
+            });
+
+            // Show a banner inside the report when locked
+            let banner = document.getElementById('lockBanner');
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'lockBanner';
+                banner.className = 'no-print';
+                banner.style.cssText = 'background:#dc3545;color:#fff;text-align:center;padding:6px;font-weight:bold;font-size:0.9rem;border-radius:4px;margin-bottom:8px;';
+                const rptActions = document.querySelector('.rpt-actions');
+                rptActions && rptActions.insertAdjacentElement('afterend', banner);
+            }
+            banner.style.display = locked ? 'block' : 'none';
+            banner.textContent   = locked
+                ? '🔒 النتائج مقفولة — لا يمكن تعديل البيانات. اضغط "Unlock Results" للتعديل.'
+                : '';
+        }
 
         // Standard sieves
         const standardSieves = [
@@ -1756,6 +2595,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializeSieveTables();
             initializeDoubleSeparationTables();
+            initSpecLimitsTable();
             setDefaultDates();
             loadFromLocalStorage();
             updateProgress();
@@ -1782,28 +2622,25 @@
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
 
-        // Tab switching
+        // Tab switching — fixed: no event dependency
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                btn.classList.remove('active');
-            });
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
 
             document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
+
+            // Highlight matching tab button (works both from click and programmatic call)
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${tabId}'`)) {
+                    btn.classList.add('active');
+                }
+            });
 
             const tabNumber = parseInt(tabId.replace('tab', ''));
             updateProgress(tabNumber);
 
-            if (tabId === 'tab3') {
-                displayFinalResults();
-            }
-
-            if (tabId === 'tab4') {
-                generateFinalReport();
-            }
+            if (tabId === 'tab3') displayFinalResults();
+            if (tabId === 'tab4') generateFinalReport();
 
             localStorage.setItem('currentTab', tabId);
         }
@@ -1822,22 +2659,19 @@
             }
         }
 
-        // Test mode selection
+        // Test mode selection — fully programmatic, zero event dependency
         function selectTestMode(mode) {
             currentTestMode = mode;
-            
-            document.querySelectorAll('.mode-option').forEach(opt => {
-                opt.classList.remove('selected');
+            const modeKeys = ['single', 'composite-single', 'composite-double'];
+            document.querySelectorAll('.mode-option').forEach((opt, i) => {
+                opt.classList.toggle('selected', modeKeys[i] === mode);
             });
-            event.currentTarget.classList.add('selected');
-
-            document.getElementById('singleSieveSection').style.display = 
+            document.getElementById('singleSieveSection').style.display =
                 mode === 'single' ? 'block' : 'none';
-            document.getElementById('compositeSingleSection').style.display = 
+            document.getElementById('compositeSingleSection').style.display =
                 mode === 'composite-single' ? 'block' : 'none';
-            document.getElementById('compositeDoubleSection').style.display = 
+            document.getElementById('compositeDoubleSection').style.display =
                 mode === 'composite-double' ? 'block' : 'none';
-
             autoSave();
         }
 
@@ -1900,7 +2734,7 @@
                     const row = document.createElement('tr');
                     const cachedVal = _coarserCmrCache[sieve.opening] !== undefined ? _coarserCmrCache[sieve.opening] : '';
                     row.innerHTML = `
-                        <td><input type="checkbox" checked onchange="autoSave()"></td>
+                        <td><input type="checkbox" checked onchange="autoSave(); calculateCompositeSingle()"></td>
                         <td>${sieve.name}</td>
                         <td>${sieve.opening.toFixed(3)}</td>
                         <td><input type="number" step="0.01" placeholder="0.00"
@@ -1922,7 +2756,7 @@
                     const row = document.createElement('tr');
                     const cachedVal = _finerFcmrCache[sieve.opening] !== undefined ? _finerFcmrCache[sieve.opening] : '';
                     row.innerHTML = `
-                        <td><input type="checkbox" checked onchange="autoSave()"></td>
+                        <td><input type="checkbox" checked onchange="autoSave(); calculateCompositeFiner()"></td>
                         <td>${sieve.name}</td>
                         <td>${sieve.opening.toFixed(3)}</td>
                         <td><input type="number" step="0.01" placeholder="0.00"
@@ -2045,6 +2879,7 @@
         // Calculate single sieve-set — FIXED
         // ============================================================
         function calculateSingle() {
+            if (resultsLocked) { alert('🔒 النتائج مقفولة | Results are locked. Unlock first.'); return; }
             const specimenMass = parseFloat(document.getElementById('singleSpecimenMass').value) || 0;
             
             if (specimenMass === 0) {
@@ -2104,6 +2939,7 @@
 
         // Calculate composite single separation — FIXED
         function calculateCompositeSingle() {
+            if (resultsLocked) { alert('🔒 النتائج مقفولة | Results are locked. Unlock first.'); return; }
             const cpMd  = parseFloat(document.getElementById('compCoarserMass').value)       || 0;
             const fpMm  = parseFloat(document.getElementById('compFinerMoistMass').value)     || 0;
             const wfp   = parseFloat(document.getElementById('compFinerWaterContent').value)  || 0;
@@ -2446,7 +3282,7 @@
                     const row = tbody1stCoarser.insertRow();
                     const v = _double1stCmrCache[sieve.opening] !== undefined ? _double1stCmrCache[sieve.opening] : '';
                     row.innerHTML = `
-                        <td><input type="checkbox" checked onchange="autoSave()"></td>
+                        <td><input type="checkbox" checked onchange="autoSave(); calculateDoubleComposite()"></td>
                         <td>${sieve.name}</td>
                         <td>${sieve.opening.toFixed(3)}</td>
                         <td><input type="number" step="0.01" placeholder="0.00" id="double1stCP_cmr_${index}" value="${v}" oninput="autoSave(); calculateDoubleComposite()"></td>
@@ -2465,7 +3301,7 @@
                     const row = tbody2ndCoarser.insertRow();
                     const v = _double2ndCpCache[sieve.opening] !== undefined ? _double2ndCpCache[sieve.opening] : '';
                     row.innerHTML = `
-                        <td><input type="checkbox" checked onchange="autoSave()"></td>
+                        <td><input type="checkbox" checked onchange="autoSave(); calculateDoubleComposite()"></td>
                         <td>${sieve.name}</td>
                         <td>${sieve.opening.toFixed(3)}</td>
                         <td><input type="number" step="0.01" placeholder="0.00" id="double2ndCP_fcmr_${index}" value="${v}" oninput="autoSave(); calculateDoubleComposite()"></td>
@@ -2483,7 +3319,7 @@
                     const row = tbody2ndSubS.insertRow();
                     const v = _double2ndSubsCache[sieve.opening] !== undefined ? _double2ndSubsCache[sieve.opening] : '';
                     row.innerHTML = `
-                        <td><input type="checkbox" checked onchange="autoSave()"></td>
+                        <td><input type="checkbox" checked onchange="autoSave(); calculateDoubleComposite()"></td>
                         <td>${sieve.name}</td>
                         <td>${sieve.opening.toFixed(3)}</td>
                         <td><input type="number" step="0.01" placeholder="0.00" id="double2ndSubS_fcmr_${index}" value="${v}" oninput="autoSave(); calculateDoubleComposite()"></td>
@@ -2775,7 +3611,197 @@
                 `;
             });
 
-            updateGradationChart();
+            safeUpdateGradationChart();
+            runQCChecks();
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // QC / QA — ASTM D6913 Compliance Engine
+        // ══════════════════════════════════════════════════════════════
+
+        // Table 3 — Max mass retained by sieve diameter (ASTM D6913 Table 3)
+        // Keys: opening in mm → { '200': g, '305': g, '370x580': g }
+        const OVERLOAD_LIMITS_BY_DIAM = {
+            75.000: { '200': 2700, '305': 6100, '370x580': 18000 },
+            50.000: { '200': 2000, '305': 4500, '370x580': 13000 },
+            37.500: { '200': 1500, '305': 3400, '370x580': 10000 },
+            25.000: { '200': 1100, '305': 2500, '370x580':  7000 },
+            19.000: { '200':  900, '305': 2000, '370x580':  6000 },
+             9.500: { '200':  550, '305': 1200, '370x580':  3600 },
+             4.750: { '200':  325, '305':  730, '370x580':  2000 },
+             2.000: { '200':  180, '305':  410, '370x580':  1000 },
+             0.850: { '200':  115, '305':  260, '370x580':   800 },
+             0.425: { '200':   75, '305':  170, '370x580':   500 },
+             0.250: { '200':   60, '305':  140, '370x580':   400 },
+             0.150: { '200':   40, '305':   90, '370x580':   300 },
+             0.106: { '200':   30, '305':   70, '370x580':   200 },
+             0.075: { '200':   20, '305':   50, '370x580':   100 }
+        };
+
+        // Table 2 — Minimum dry mass of specimen (g), Method A
+        const MIN_MASS_TABLE = [
+            { opening: 0.425, minA:    50, minB:    75 },
+            { opening: 2.000, minA:    50, minB:   100 },
+            { opening: 4.750, minA:    75, minB:   200 },
+            { opening: 9.500, minA:   165, minB: null  },
+            { opening: 19.00, minA:  1300, minB: null  },
+            { opening: 25.00, minA:  3000, minB: null  },
+            { opening: 37.50, minA: 10000, minB: null  },
+            { opening: 50.00, minA: 25000, minB: null  },
+            { opening: 75.00, minA: 70000, minB: null  }
+        ];
+
+        function getMinMass(maxParticleSizeMm, method) {
+            // Find the row where opening >= maxParticleSize (first that fits)
+            const row = MIN_MASS_TABLE.find(r => r.opening >= maxParticleSizeMm * 0.999);
+            if (!row) return null;
+            return method === 'B' ? row.minB : row.minA;
+        }
+
+        function runQCChecks() {
+            const panel = document.getElementById('qcPanel');
+            if (!panel) return;
+            if (!finalResults || finalResults.length === 0) { panel.style.display = 'none'; return; }
+
+            const checks = [];
+            const method = document.getElementById('methodSelect').value || 'A';
+
+            // ── 1. MINIMUM MASS CHECK (Table 2) ──────────────────────────
+            const maxPS = parseFloat(document.getElementById('maxParticleSize').value) || 0;
+            let specimenMass = 0;
+            if (currentTestMode === 'single') {
+                specimenMass = parseFloat(document.getElementById('singleSpecimenMass').value) || 0;
+            } else if (currentTestMode === 'composite-single') {
+                const c = parseFloat(document.getElementById('compCoarserMass').value) || 0;
+                const f = parseFloat(document.getElementById('compFinerMoistMass').value) || 0;
+                const w = parseFloat(document.getElementById('compFinerWaterContent').value) || 0;
+                specimenMass = c + (w > 0 ? f / (1 + w / 100) : f);
+            } else if (currentTestMode === 'composite-double') {
+                const c = parseFloat(document.getElementById('double1stCPMd').value) || 0;
+                const f = parseFloat(document.getElementById('double1stFPMm').value) || 0;
+                const w = parseFloat(document.getElementById('double1stFPw').value) || 0;
+                specimenMass = c + (w > 0 ? f / (1 + w / 100) : f);
+            }
+
+            if (maxPS > 0 && specimenMass > 0) {
+                const minReq = getMinMass(maxPS, method);
+                if (minReq === null) {
+                    checks.push({ label: 'الحد الأدنى للكتلة (Table 2)', status: 'warn',
+                        detail: `Max particle size ${maxPS} mm — Method B لا ينطبق على هذا الحجم، استخدم Method A مع Composite Sieving.` });
+                } else if (specimenMass >= minReq) {
+                    checks.push({ label: 'الحد الأدنى للكتلة — Table 2', status: 'ok',
+                        detail: `كتلة العينة ${specimenMass.toFixed(1)} g ≥ الحد الأدنى ${minReq} g للحجم الأقصى ${maxPS} mm (Method ${method})` });
+                } else {
+                    checks.push({ label: 'الحد الأدنى للكتلة — Table 2', status: 'fail',
+                        detail: `❌ كتلة العينة ${specimenMass.toFixed(1)} g < الحد الأدنى المطلوب ${minReq} g للحجم الأقصى ${maxPS} mm (Method ${method}). يجب إعادة الاختبار بعينة أكبر.` });
+                }
+            } else {
+                checks.push({ label: 'الحد الأدنى للكتلة — Table 2', status: 'warn',
+                    detail: 'أدخل الحجم الأقصى للجسيمات وكتلة العينة في Tab 2 لإجراء هذا الفحص.' });
+            }
+
+            // ── 2. SIEVE OVERLOADING CHECK (Table 3) ─────────────────────
+            const sieveDiam = (document.getElementById('sieveDiameter')?.value) || '200';
+            const sieveDiamLabel = sieveDiam === '200' ? '200mm (8 in)' : sieveDiam === '305' ? '305mm (12 in)' : '370×580mm';
+            const overloadedSieves = [];
+            finalResults.forEach(r => {
+                if (r.opening <= 0) return; // skip Pan
+                const limRow = Object.entries(OVERLOAD_LIMITS_BY_DIAM).find(
+                    ([k]) => Math.abs(parseFloat(k) - r.opening) < 0.001
+                );
+                if (!limRow) return;
+                const limit = limRow[1][sieveDiam];
+                if (limit == null) return;
+                const mr = r.mr || 0;
+                if (mr > limit) {
+                    overloadedSieves.push({ sieve: r.sieve, mr: mr.toFixed(1), limit });
+                }
+            });
+            if (overloadedSieves.length === 0) {
+                checks.push({ label: `تحميل المناخل — Table 3 (${sieveDiamLabel})`, status: 'ok',
+                    detail: `لا توجد مناخل محمّلة بكمية تتجاوز الحد الأقصى لمناخل ${sieveDiamLabel} (D6913 §11.3).` });
+            } else {
+                const details = overloadedSieves.map(s =>
+                    `منخل ${s.sieve}: ${s.mr} g محجوزة، الحد الأقصى = ${s.limit} g`).join(' | ');
+                checks.push({ label: `تحميل المناخل — Table 3 (${sieveDiamLabel})`, status: 'fail',
+                    detail: `❌ ${overloadedSieves.length} منخل/مناخل محمّلة زيادة — يُعاد الغربلة على دفعات §11.3.1: ${details}` });
+            }
+
+            // ── 3. MASS LOSS CHECK (§8.5, ≤ 2%) ─────────────────────────
+            const iniMass = specimenMass;
+            const aftMassVal = parseFloat(document.getElementById('massAfterSieving')?.value) || 0;
+            if (iniMass > 0 && aftMassVal > 0) {
+                const lossP = ((iniMass - aftMassVal) / iniMass) * 100;
+                if (lossP <= 2) {
+                    checks.push({ label: 'فقد الكتلة (§8.5)', status: 'ok',
+                        detail: `فقد الكتلة = ${lossP.toFixed(2)}% ≤ 2% ✓` });
+                } else {
+                    checks.push({ label: 'فقد الكتلة (§8.5)', status: 'fail',
+                        detail: `❌ فقد الكتلة = ${lossP.toFixed(2)}% > 2% — يجب إعادة الاختبار وفق §8.5.` });
+                }
+            } else {
+                checks.push({ label: 'فقد الكتلة (§8.5)', status: 'warn',
+                    detail: 'أدخل "الكتلة الكلية بعد الغربلة" في Tab 2 لحساب فقد الكتلة.' });
+            }
+
+            // ── 4. METHOD A/B VALIDITY ────────────────────────────────────
+            if (method === 'B' && maxPS > 4.75) {
+                checks.push({ label: 'صلاحية Method B', status: 'fail',
+                    detail: `❌ Method B لا يُطبَّق على عينات بحجم أقصى > 4.75 mm. الحجم الأقصى المُدخل: ${maxPS} mm — حوّل إلى Method A.` });
+            } else if (method === 'B' && currentTestMode !== 'single') {
+                checks.push({ label: 'صلاحية Method B', status: 'fail',
+                    detail: '❌ Method B لا يُستخدم مع Composite Sieving — استخدم Method A فقط وفق §1.6.1.' });
+            } else {
+                checks.push({ label: 'صلاحية الطريقة المختارة', status: 'ok',
+                    detail: `Method ${method} مع ${currentTestMode === 'single' ? 'Single Sieve-Set' : currentTestMode === 'composite-single' ? 'Composite Single' : 'Composite Double'} — مطابق للمواصفة.` });
+            }
+
+            // ── 5. FIRST SIEVE IN FINER SET (Composite only, ≤ 2%) ───────
+            if (currentTestMode !== 'single' && finalResults.length > 0) {
+                const finerWarnEl = document.getElementById('compFinerFirstRowWarning');
+                if (finerWarnEl && finerWarnEl.style.display !== 'none') {
+                    checks.push({ label: 'المادة المحجوزة على أول منخل الجزء الأدق (§11.5.2.2)', status: 'fail',
+                        detail: '❌ نسبة المحجوز على أول منخل الجزء الأدق > 2% — تحقق من طريقة التقسيم (Splitting) أو دقة منخل الفصل.' });
+                } else {
+                    checks.push({ label: 'المادة على أول منخل الجزء الأدق (§11.5.2.2)', status: 'ok',
+                        detail: 'المادة المحجوزة على أول منخل الجزء الأدق ≤ 2% من كتلة العينة الفرعية ✓' });
+                }
+            }
+
+            // ── Render panel ──────────────────────────────────────────────
+            const allOk   = checks.every(c => c.status === 'ok');
+            const hasFail = checks.some(c => c.status === 'fail');
+            const overallColor = hasFail ? '#dc3545' : allOk ? '#198754' : '#ffc107';
+            const overallIcon  = hasFail ? '❌' : allOk ? '✅' : '⚠️';
+            const overallLabel = hasFail ? 'غير مطابق — يوجد عيوب' : allOk ? 'مطابق — جميع الفحوصات ناجحة' : 'تحقق جزئي — بيانات ناقصة';
+
+            const rows = checks.map(c => {
+                const bg   = c.status === 'ok' ? '#d1e7dd' : c.status === 'fail' ? '#f8d7da' : '#fff3cd';
+                const icon = c.status === 'ok' ? '✅' : c.status === 'fail' ? '❌' : '⚠️';
+                return `<tr style="background:${bg};">
+                    <td style="padding:7px 10px;font-weight:600;white-space:nowrap;">${icon} ${c.label}</td>
+                    <td style="padding:7px 10px;font-size:0.88rem;">${c.detail}</td>
+                </tr>`;
+            }).join('');
+
+            panel.style.display = 'block';
+            panel.innerHTML = `
+            <div style="border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.12);margin-bottom:10px;">
+                <div style="background:${overallColor};color:#fff;padding:12px 18px;font-size:1.05rem;font-weight:700;display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:1.3rem;">${overallIcon}</span>
+                    <span>لوحة مطابقة المواصفة — ASTM D6913 QC/QA</span>
+                    <span style="margin-right:auto;font-size:0.9rem;background:rgba(255,255,255,0.2);padding:3px 10px;border-radius:20px;">${overallLabel}</span>
+                </div>
+                <table style="width:100%;border-collapse:collapse;font-family:'Segoe UI',sans-serif;">
+                    <thead>
+                        <tr style="background:#343a40;color:#fff;">
+                            <th style="padding:8px 10px;text-align:right;width:35%;">الفحص / Check</th>
+                            <th style="padding:8px 10px;text-align:right;">التفاصيل / Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>`;
         }
 
         // Interpolate D-value
@@ -2798,146 +3824,486 @@
             return 0;
         }
 
-        // USCS Classification
+        // ================================================================
+        // USCS Classification — ASTM D2487-11  (complete implementation)
+        // Inputs:
+        //   gravel  = % retained No.4 (>4.75mm) of TOTAL specimen
+        //   sand    = % passing No.4 & retained No.200 of TOTAL specimen
+        //   fines   = % passing No.200 (0.075mm) of TOTAL specimen
+        //   ll, pi  = Atterberg limits (plasticity index)
+        //   cu, cc  = uniformity & curvature coefficients
+        // ================================================================
         function classifyUSCS(gravel, sand, fines, ll, pi, cu, cc) {
-            let symbol = '';
-            let description = '';
+            // A-line equation: PI_A = 0.73 * (LL - 20)
+            // Point plots ON or ABOVE A-line if PI >= 0.73*(LL-20)
+            const piAline = ll > 0 ? 0.73 * (ll - 20) : 0;
+            const aboveAline = (ll > 0) && (pi >= piAline);
+            const belowAline = (ll > 0) && (pi < piAline);
 
-            if (fines < 5) {
-                // Coarse-grained soil
-                if (gravel > sand) {
-                    // Gravel
-                    if (cu >= 4 && cc >= 1 && cc <= 3) {
-                        symbol = 'GW';
-                        description = 'Well-graded gravel | حصى متدرج جيداً';
+            const coarse = gravel + sand;          // % retained on No.200
+            // Coarse fraction percentages (of total specimen)
+            const pctGravelOfTotal = gravel;       // already % of total
+            const pctSandOfTotal   = sand;
+
+            // ── Is it coarse-grained? (> 50% retained on No.200) ──────────
+            if (fines < 50) {
+                // Determine if gravel or sand based on coarse fraction
+                // "Gravel if more than 50% of COARSE FRACTION retained on No.4"
+                const isGravel = (coarse > 0) && (gravel / coarse > 0.5);
+
+                // ── GRAVEL group ──────────────────────────────────────────
+                if (isGravel) {
+                    let sym, name;
+
+                    if (fines < 5) {
+                        // Clean gravel
+                        if (cu >= 4 && cc >= 1 && cc <= 3) {
+                            sym = 'GW';
+                            name = 'Well-graded gravel';
+                        } else {
+                            sym = 'GP';
+                            name = 'Poorly graded gravel';
+                        }
+                        // Suffix: if ≥15% sand, add "with sand"
+                        if (sand >= 15) name += ' with sand';
+
+                    } else if (fines <= 12) {
+                        // Dual symbol — 5-12% fines
+                        const firstSym = (cu >= 4 && cc >= 1 && cc <= 3) ? 'GW' : 'GP';
+                        let secondSym;
+                        if (pi < 4 || belowAline)       secondSym = 'GM';
+                        else if (pi >= 7 && aboveAline) secondSym = 'GC';
+                        else                             secondSym = 'GC'; // CL-ML → GC per Note 10
+                        sym  = firstSym + '-' + secondSym;
+                        name = (firstSym === 'GW' ? 'Well-graded gravel' : 'Poorly graded gravel')
+                             + (secondSym === 'GM' ? ' with silt' : ' with clay');
+                        if (sand >= 15) name += ' and sand';
+
                     } else {
-                        symbol = 'GP';
-                        description = 'Poorly-graded gravel | حصى متدرج سيئاً';
+                        // >12% fines
+                        if (pi >= 7 && aboveAline) {
+                            sym  = 'GC'; name = 'Clayey gravel';
+                        } else if (pi < 4 || belowAline) {
+                            sym  = 'GM'; name = 'Silty gravel';
+                        } else {
+                            // CL-ML zone (4 ≤ PI ≤ 7 on/above A-line)
+                            sym  = 'GC-GM'; name = 'Silty, clayey gravel';
+                        }
+                        if (sand >= 15) name += ' with sand';
                     }
+                    return { symbol: sym, description: name };
+
+                // ── SAND group ──────────────────────────────────────────────
                 } else {
-                    // Sand
-                    if (cu >= 6 && cc >= 1 && cc <= 3) {
-                        symbol = 'SW';
-                        description = 'Well-graded sand | رمل متدرج جيداً';
+                    let sym, name;
+
+                    if (fines < 5) {
+                        // Clean sand
+                        if (cu >= 6 && cc >= 1 && cc <= 3) {
+                            sym = 'SW'; name = 'Well-graded sand';
+                        } else {
+                            sym = 'SP'; name = 'Poorly graded sand';
+                        }
+                        if (gravel >= 15) name += ' with gravel';
+
+                    } else if (fines <= 12) {
+                        // Dual symbol — 5-12% fines
+                        const firstSym = (cu >= 6 && cc >= 1 && cc <= 3) ? 'SW' : 'SP';
+                        let secondSym;
+                        if (pi < 4 || belowAline)       secondSym = 'SM';
+                        else if (pi >= 7 && aboveAline) secondSym = 'SC';
+                        else                             secondSym = 'SC';
+                        sym  = firstSym + '-' + secondSym;
+                        name = (firstSym === 'SW' ? 'Well-graded sand' : 'Poorly graded sand')
+                             + (secondSym === 'SM' ? ' with silt' : ' with clay');
+                        if (gravel >= 15) name += ' and gravel';
+
                     } else {
-                        symbol = 'SP';
-                        description = 'Poorly-graded sand | رمل متدرج سيئاً';
+                        // >12% fines
+                        if (pi >= 7 && aboveAline) {
+                            sym  = 'SC'; name = 'Clayey sand';
+                        } else if (pi < 4 || belowAline) {
+                            sym  = 'SM'; name = 'Silty sand';
+                        } else {
+                            sym  = 'SC-SM'; name = 'Silty, clayey sand';
+                        }
+                        if (gravel >= 15) name += ' with gravel';
                     }
+                    return { symbol: sym, description: name };
                 }
-            } else if (fines >= 5 && fines <= 12) {
-                // Borderline
-                if (gravel > sand) {
-                    symbol = 'GW-GM/GW-GC/GP-GM/GP-GC';
-                    description = 'Gravel with fines | حصى مع جزيئات دقيقة';
-                } else {
-                    symbol = 'SW-SM/SW-SC/SP-SM/SP-SC';
-                    description = 'Sand with fines | رمل مع جزيئات دقيقة';
-                }
+
+            // ── FINE-GRAINED SOILS (≥50% fines) ────────────────────────────
             } else {
-                // Fine-grained soil
-                if (ll > 0 && pi > 0) {
-                    if (ll < 50) {
-                        if (pi > 7) {
-                            symbol = 'CL';
-                            description = 'Lean clay | طين قليل اللدونة';
-                        } else if (pi < 4) {
-                            symbol = 'ML';
-                            description = 'Silt | سلت';
-                        } else {
-                            symbol = 'ML-CL';
-                            description = 'Silty clay | طين سلتي';
-                        }
-                    } else {
-                        if (pi > 7) {
-                            symbol = 'CH';
-                            description = 'Fat clay | طين عالي اللدونة';
-                        } else {
-                            symbol = 'MH';
-                            description = 'Elastic silt | سلت مرن';
-                        }
-                    }
-                } else {
-                    if (gravel > sand) {
-                        symbol = 'GM/GC';
-                        description = 'Silty/Clayey gravel | حصى سلتي/طيني';
-                    } else {
-                        symbol = 'SM/SC';
-                        description = 'Silty/Clayey sand | رمل سلتي/طيني';
-                    }
+                if (ll <= 0) {
+                    // No Atterberg limits available — can't classify precisely
+                    return {
+                        symbol: fines >= 50 ? 'ML/CL' : 'SM/SC',
+                        description: 'Fine-grained — Atterberg limits required for precise classification'
+                    };
                 }
-            }
 
-            return { symbol, description };
+                let sym, name;
+                const retainedNo200 = coarse; // % retained on No.200 = coarse fraction
+
+                // Determine base symbol
+                if (aboveAline && pi > 7) {
+                    sym  = ll < 50 ? 'CL' : 'CH';
+                    name = ll < 50 ? 'Lean clay' : 'Fat clay';
+                } else if (aboveAline && pi >= 4 && pi <= 7) {
+                    sym  = 'CL-ML'; name = 'Silty clay';
+                } else {
+                    // Below A-line or PI < 4
+                    sym  = ll < 50 ? 'ML' : 'MH';
+                    name = ll < 50 ? 'Silt' : 'Elastic silt';
+                }
+
+                // Group name qualifiers (D2487 §11.4, §11.5)
+                // 15 to <30% coarse: add "with sand" or "with gravel"
+                // ≥30% coarse: prefix "sandy" or "gravelly"
+                if (retainedNo200 >= 30) {
+                    const prefix = (gravel >= sand) ? 'Gravelly' : 'Sandy';
+                    name = prefix + ' ' + name.toLowerCase();
+                } else if (retainedNo200 >= 15) {
+                    const suffix = (gravel >= sand) ? ' with gravel' : ' with sand';
+                    name = name + suffix;
+                }
+
+                return { symbol: sym, description: name };
+            }
         }
 
-        // AASHTO Classification
+        // ================================================================
+        // AASHTO Classification — ASTM D3282-15
+        // Uses "left-to-right elimination" per Table 2
+        // Also computes Group Index
+        // Additional sieve %passing needed: No.10 (2mm), No.40 (0.425mm)
+        // ================================================================
         function classifyAASHTO(gravel, sand, fines, ll, pi) {
-            let group = '';
-            let description = '';
+            // Get pp at specific sieves from finalResults
+            const ppAt = (opening) => {
+                const r = finalResults.find(x => Math.abs(x.opening - opening) < 0.001);
+                return r ? r.pp : null;
+            };
+            const pp10  = ppAt(2.00);    // No.10
+            const pp40  = ppAt(0.425);   // No.40
+            const pp200 = fines;         // No.200 = fines %
 
-            if (fines <= 35) {
-                // Granular materials
-                if (fines <= 15) {
-                    if (gravel > sand) {
-                        group = 'A-1-a';
-                        description = 'Stone fragments, gravel, and sand';
-                    } else {
-                        group = 'A-1-b';
-                        description = 'Stone fragments, gravel, and sand';
-                    }
-                } else if (fines <= 25) {
-                    group = 'A-2-4';
-                    description = 'Silty or clayey gravel and sand';
+            // Round to whole numbers per D3282 §8.1.1
+            const F   = Math.round(pp200);
+            const LL  = ll  > 0 ? Math.round(ll)  : 0;
+            const PI  = pi  > 0 ? Math.round(pi)  : 0;
+            const P10 = pp10  != null ? Math.round(pp10)  : null;
+            const P40 = pp40  != null ? Math.round(pp40)  : null;
+
+            // Group Index calculation (§10.1.1)
+            function calcGI(isA26orA27 = false) {
+                if (LL === 0 && PI === 0) return 0;
+                let gi;
+                if (isA26orA27) {
+                    // Only PI portion
+                    gi = 0.01 * (F - 15) * (PI - 10);
                 } else {
-                    if (pi <= 10) {
-                        group = 'A-2-4';
-                        description = 'Silty gravel and sand';
-                    } else {
-                        group = 'A-2-6/A-2-7';
-                        description = 'Clayey gravel and sand';
-                    }
+                    gi = (F - 35) * (0.2 + 0.005 * (LL - 40))
+                       + 0.01 * (F - 15) * (PI - 10);
                 }
-            } else {
-                // Silt-clay materials
-                if (ll <= 40) {
-                    if (pi <= 10) {
-                        group = 'A-4';
-                        description = 'Silty soils';
-                    } else {
-                        group = 'A-6';
-                        description = 'Clayey soils';
-                    }
-                } else {
-                    if (pi <= (ll - 30)) {
-                        group = 'A-5';
-                        description = 'Silty soils';
-                    } else {
-                        group = 'A-7-5/A-7-6';
-                        description = 'Clayey soils';
-                    }
-                }
+                return Math.max(0, Math.round(gi));
             }
 
-            return { group, description };
+            let group = '', desc = '', gi = 0;
+
+            // ── LEFT-TO-RIGHT elimination ──────────────────────────────
+            // A-1-a: ≤50% P10, ≤30% P40, ≤15% P200, PI≤6
+            if (
+                (P10 == null || P10 <= 50) &&
+                (P40 == null || P40 <= 30) &&
+                F <= 15 &&
+                (PI === 0 || PI <= 6)
+            ) {
+                group = 'A-1-a'; desc = 'Stone fragments, gravel and sand — Excellent to Good'; gi = 0;
+
+            // A-1-b: ≤50% P40, ≤25% P200, PI≤6
+            } else if (
+                (P40 == null || P40 <= 50) &&
+                F <= 25 &&
+                (PI === 0 || PI <= 6)
+            ) {
+                group = 'A-1-b'; desc = 'Stone fragments, gravel and sand — Excellent to Good'; gi = 0;
+
+            // A-3: ≥51% P40, ≤10% P200, non-plastic
+            } else if (
+                (P40 == null || P40 >= 51) &&
+                F <= 10 &&
+                PI === 0
+            ) {
+                group = 'A-3'; desc = 'Fine sand — Fair to Good'; gi = 0;
+
+            // A-2-4: ≤35% P200, LL≤40, PI≤10
+            } else if (F <= 35 && LL <= 40 && PI <= 10) {
+                gi = calcGI(false);
+                group = `A-2-4(${gi})`; desc = 'Silty or clayey gravel and sand — Excellent to Good';
+
+            // A-2-5: ≤35% P200, LL≥41, PI≤10
+            } else if (F <= 35 && LL >= 41 && PI <= 10) {
+                gi = calcGI(false);
+                group = `A-2-5(${gi})`; desc = 'Silty or clayey gravel and sand — Excellent to Good';
+
+            // A-2-6: ≤35% P200, LL≤40, PI≥11
+            } else if (F <= 35 && LL <= 40 && PI >= 11) {
+                gi = calcGI(true);
+                group = `A-2-6(${gi})`; desc = 'Silty or clayey gravel and sand — Excellent to Good';
+
+            // A-2-7: ≤35% P200, LL≥41, PI≥11
+            } else if (F <= 35 && LL >= 41 && PI >= 11) {
+                gi = calcGI(true);
+                group = `A-2-7(${gi})`; desc = 'Silty or clayey gravel and sand — Excellent to Good';
+
+            // Silt-clay materials (F > 35%)
+            // A-4: LL≤40, PI≤10
+            } else if (F >= 36 && LL <= 40 && PI <= 10) {
+                gi = calcGI(false);
+                group = `A-4(${gi})`; desc = 'Silty soils — Fair to Poor';
+
+            // A-5: LL≥41, PI≤10
+            } else if (F >= 36 && LL >= 41 && PI <= 10) {
+                gi = calcGI(false);
+                group = `A-5(${gi})`; desc = 'Silty soils (elastic) — Fair to Poor';
+
+            // A-6: LL≤40, PI≥11
+            } else if (F >= 36 && LL <= 40 && PI >= 11) {
+                gi = calcGI(false);
+                group = `A-6(${gi})`; desc = 'Clayey soils — Fair to Poor';
+
+            // A-7-5 or A-7-6: LL≥41, PI≥11
+            } else if (F >= 36 && LL >= 41 && PI >= 11) {
+                gi = calcGI(false);
+                if (PI <= LL - 30) {
+                    group = `A-7-5(${gi})`;
+                    desc  = 'Elastic clayey soils — Fair to Poor';
+                } else {
+                    group = `A-7-6(${gi})`;
+                    desc  = 'Highly plastic clayey soils — Fair to Poor';
+                }
+
+            } else {
+                // Insufficient data
+                group = 'A-?';
+                desc  = 'Insufficient data (LL and PI required)';
+            }
+
+            return { group, description: desc };
         }
 
-        // Update gradation chart
-        function updateGradationChart() {
-            const ctx = document.getElementById('gradationChart');
-            
-            if (chartInstance) {
-                chartInstance.destroy();
+
+        // ══════════════════════════════════════════════════════════════
+        // CANVAS-NATIVE GRADATION CHART — works with or without Chart.js
+        // ══════════════════════════════════════════════════════════════
+        function drawNativeChart(canvasId, points, isDark, compact) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const W = canvas.width  = canvas.offsetWidth  || (compact?400:700);
+            const H = canvas.height = canvas.offsetHeight || (compact?130:320);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0,0,W,H);
+
+            if (!points || points.length === 0) {
+                ctx.fillStyle = '#888';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data to display', W/2, H/2);
+                return;
             }
+
+            const textColor = isDark ? '#e9ecef' : '#111';
+            const gridColor = isDark ? '#444' : '#ccc';
+            const lineColor = compact ? '#000' : '#0d6efd';
+
+            // Margins
+            const ML=compact?32:52, MR=compact?14:20,
+                  MT=compact?10:16, MB=compact?26:40;
+            const plotW = W-ML-MR, plotH = H-MT-MB;
+
+            // Compute bounds
+            const {xMin, xMax} = chartAxisBounds(points);
+            const logMin = Math.log10(xMin), logMax = Math.log10(xMax);
+            const logRange = logMax - logMin;
+
+            const toX = v => ML + plotW * (1 - (Math.log10(v)-logMin)/logRange);
+            const toY = p => MT + plotH * (1 - p/100);
+
+            // Grid lines Y
+            ctx.strokeStyle = gridColor; ctx.lineWidth = 0.5;
+            for(let p=0;p<=100;p+=10){
+                const y=toY(p);
+                ctx.beginPath(); ctx.moveTo(ML,y); ctx.lineTo(ML+plotW,y); ctx.stroke();
+                ctx.fillStyle=textColor; ctx.font=(compact?'5':'8')+'px Arial';
+                ctx.textAlign='right';
+                ctx.fillText(p, ML-3, y+3);
+            }
+
+            // Grid lines X (standard sieves)
+            const stdSieves=[0.001,0.002,0.005,0.01,0.02,0.05,0.075,0.106,0.150,
+                              0.250,0.425,0.850,2.00,4.75,9.5,12.5,19.0,25.0,37.5,50.0,75.0,150.0];
+            const sieveNames={0.075:'No.200',0.425:'No.40',2.00:'No.10',4.75:'No.4',
+                              9.5:'3/8"',19.0:'3/4"',25.0:'1"',37.5:'1.5"',50.0:'2"',75.0:'3"'};
+            const fs = compact?5:7;
+            ctx.font = fs+'px Arial';
+
+            stdSieves.forEach(s=>{
+                if(s<xMin*0.95||s>xMax*1.05) return;
+                const x=toX(s);
+                ctx.strokeStyle=gridColor; ctx.lineWidth=0.5;
+                ctx.beginPath(); ctx.moveTo(x,MT); ctx.lineTo(x,MT+plotH); ctx.stroke();
+                if(s>=xMin&&s<=xMax){
+                    ctx.fillStyle=textColor; ctx.textAlign='center';
+                    const lbl=sieveNames[s]||(s>=1?s.toFixed(0):s>=0.1?s.toFixed(3):s.toFixed(4));
+                    ctx.save(); ctx.translate(x,MT+plotH+3); ctx.rotate(compact?-0.7:-0.6);
+                    ctx.fillText(lbl,0,0); ctx.restore();
+                }
+            });
+
+            // Zone boundary lines
+            [0.075,0.425,2.0,4.75,19.0].forEach(z=>{
+                if(z<xMin||z>xMax) return;
+                const x=toX(z);
+                ctx.strokeStyle='#aaa'; ctx.lineWidth=0.6;
+                ctx.setLineDash([3,3]);
+                ctx.beginPath(); ctx.moveTo(x,MT); ctx.lineTo(x,MT+plotH); ctx.stroke();
+                ctx.setLineDash([]);
+            });
+
+            // Plot area border
+            ctx.strokeStyle=textColor; ctx.lineWidth=1;
+            ctx.strokeRect(ML,MT,plotW,plotH);
+
+            // Axis labels
+            if(!compact){
+                ctx.fillStyle=textColor; ctx.font='bold 9px Arial';
+                ctx.textAlign='center';
+                ctx.fillText('Particle Size (mm)', ML+plotW/2, H-3);
+                ctx.save(); ctx.translate(11,MT+plotH/2); ctx.rotate(-Math.PI/2);
+                ctx.fillText('Percent Passing (%)',0,0); ctx.restore();
+            }
+
+            // D-value annotations
+            if(!compact){
+                const dv=[[interpolateDValue(10),10,'D10'],[interpolateDValue(30),30,'D30'],[interpolateDValue(60),60,'D60']];
+                dv.forEach(([d,p,lbl])=>{
+                    if(!d||d<=0||d<xMin*0.5||d>xMax*2) return;
+                    const px=toX(d), py=toY(p);
+                    ctx.strokeStyle='#c00'; ctx.lineWidth=0.8; ctx.setLineDash([3,2]);
+                    ctx.beginPath(); ctx.moveTo(px,MT+plotH); ctx.lineTo(px,py); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(ML,py); ctx.lineTo(px,py); ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.fillStyle='#c00'; ctx.font='bold 7px Arial'; ctx.textAlign='left';
+                    ctx.fillText(lbl,px+2,py-2);
+                });
+            }
+
+            // Curve
+            const validPts = points.filter(p=>p.x>=xMin*0.9&&p.x<=xMax*1.1&&p.y!==null);
+            if(validPts.length===0) return;
+            ctx.strokeStyle=lineColor; ctx.lineWidth=compact?1.5:2; ctx.setLineDash([]);
+            ctx.beginPath();
+            validPts.forEach((p,i)=>{
+                const x=toX(p.x), y=toY(p.y);
+                i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+            });
+            ctx.stroke();
+
+            // Points
+            validPts.forEach(p=>{
+                const x=toX(p.x), y=toY(p.y);
+                ctx.fillStyle=lineColor;
+                ctx.beginPath(); ctx.arc(x,y,compact?2:4,0,2*Math.PI); ctx.fill();
+            });
+        }
+
+        // ── Trim leading 100%-passing sieves (no mass retained) from chart data ──
+        // Without this, all 15 standard sieves appear in finalResults with pp=100
+        // for the coarse end, which forces the x-axis out to 75 mm and cramps
+        // the real gradation curve into a tiny slice on the right.
+        function trimActiveChartData(results) {
+            // Sort descending (coarsest first) to find the first sieve with real data
+            const desc = results
+                .filter(r => r.opening > 0)
+                .sort((a, b) => b.opening - a.opening);
+
+            const firstActive = desc.findIndex(
+                r => (r.cmr || 0) > 0.0001 || r.pp < 99.99
+            );
+
+            const trimmed = firstActive >= 0 ? desc.slice(firstActive) : desc;
+            return trimmed
+                .map(r => ({ x: r.opening, y: r.pp }))
+                .sort((a, b) => a.x - b.x);
+        }
+
+        // ── Compute smart log-axis bounds from actual sieve data ──────────
+        function chartAxisBounds(dataPoints) {
+            const stdSieves = [
+                0.001, 0.002, 0.005,
+                0.01,  0.02,  0.05,
+                0.075, 0.106, 0.150, 0.250, 0.425, 0.850,
+                2.00,  4.75,  9.5,   12.5,  19.0,  25.0,
+                37.5,  50.0,  75.0,  150.0
+            ];
+
+            if (!dataPoints || dataPoints.length === 0) {
+                return { xMin: 0.01, xMax: 150, ticks: stdSieves };
+            }
+
+            const xs = dataPoints.map(p => p.x).filter(v => v > 0);
+            const rawMin = Math.min(...xs);
+            const rawMax = Math.max(...xs);
+
+            // 2-step padding below rawMin
+            const smaller = stdSieves.filter(s => s < rawMin * 0.999);
+            const xMin = smaller.length >= 2 ? smaller[smaller.length - 2]
+                       : smaller.length === 1 ? smaller[0]
+                       : rawMin * 0.2;
+
+            // 2-step padding above rawMax
+            const larger = stdSieves.filter(s => s > rawMax * 1.001);
+            const xMax = larger.length >= 2 ? larger[1]
+                       : larger.length === 1 ? larger[0]
+                       : rawMax * 5;
+
+            return { xMin, xMax, ticks: stdSieves };
+        }
+
+        // ── Build chart dataset: inject phantom boundary points so
+        //    Chart.js MUST include the full range regardless of min/max handling ──
+        function buildChartDataWithPadding(rawData, xMin, xMax) {
+            // Phantom points have y=null so they show no dot/line
+            // but force the axis to extend to xMin and xMax
+            const pts = [...rawData];
+            const hasMin = pts.some(p => Math.abs(p.x - xMin) / xMin < 0.01);
+            const hasMax = pts.some(p => Math.abs(p.x - xMax) / xMax < 0.01);
+            if (!hasMin) pts.push({ x: xMin, y: null });
+            if (!hasMax) pts.push({ x: xMax, y: null });
+            return pts.sort((a, b) => a.x - b.x);
+        }
+
+        // Update gradation chart — Tab 3, dynamic axis (Chart.js implementation)
+        function safeUpdateGradationChart() {
+            const ctx = document.getElementById('gradationChart');
+            if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
 
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
             const gridColor = isDark ? '#495057' : '#dee2e6';
             const textColor = isDark ? '#e9ecef' : '#212529';
 
-            // Filter out Pan (opening=0) — log scale can't handle zero
-            const data = finalResults
-                .filter(r => r.opening > 0)
-                .map(r => ({ x: r.opening, y: r.pp }));
-            data.sort((a, b) => a.x - b.x);
+            const rawData = trimActiveChartData(finalResults);
+            const { xMin, xMax, ticks } = chartAxisBounds(rawData);
+            const data = buildChartDataWithPadding(rawData, xMin, xMax);
+
+            const sieveLabels = {
+                0.075:'No.200', 0.106:'No.140', 0.150:'No.100', 0.250:'No.60',
+                0.425:'No.40',  0.850:'No.20',  2.00:'No.10',   4.75:'No.4',
+                9.5:'3/8\"',    12.5:'1/2\"',   19.0:'3/4\"',   25.0:'1\"',
+                37.5:'1.5\"',   50.0:'2\"',     75.0:'3\"'
+            };
 
             chartInstance = new Chart(ctx, {
                 type: 'line',
@@ -2946,12 +4312,14 @@
                         label: 'النسبة المارة | % Passing',
                         data: data,
                         borderColor: '#0d6efd',
-                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                        backgroundColor: 'rgba(13,110,253,0.08)',
                         borderWidth: 2,
-                        pointRadius: 5,
+                        pointRadius: (c) => (c.raw && c.raw.y !== null) ? 5 : 0,
                         pointHoverRadius: 7,
-                        tension: 0.1
-                    }]
+                        tension: 0.15,
+                        fill: true,
+                        spanGaps: false
+                    }, ...buildSpecDatasets()]
                 },
                 options: {
                     responsive: true,
@@ -2961,50 +4329,37 @@
                             type: 'logarithmic',
                             position: 'bottom',
                             reverse: true,
-                            title: {
-                                display: true,
-                                text: 'حجم الجسيمات (mm) | Particle Size (mm)',
-                                color: textColor,
-                                font: { size: 14, weight: 'bold' }
-                            },
-                            grid: {
-                                color: gridColor
-                            },
+                            min: xMin,
+                            max: xMax,
+                            title: { display:true, text:'حجم الجسيمات (mm) | Particle Size (mm)', color:textColor, font:{size:13,weight:'bold'} },
+                            grid: { color: gridColor },
                             ticks: {
-                                color: textColor,
+                                color: textColor, maxRotation:45, autoSkip:false,
                                 callback: function(value) {
-                                    return value.toFixed(3);
+                                    if (value < xMin*0.9 || value > xMax*1.1) return null;
+                                    const inRange = ticks.some(t => Math.abs(t-value)/Math.max(t,value) < 0.01);
+                                    if (!inRange) return null;
+                                    if (sieveLabels[value]) return sieveLabels[value]+' ('+value+')';
+                                    return value>=1 ? value.toFixed(0) : value>=0.1 ? value.toFixed(3) : value.toFixed(4);
                                 }
                             }
                         },
                         y: {
-                            min: 0,
-                            max: 100,
-                            title: {
-                                display: true,
-                                text: 'النسبة المارة (%) | Percent Passing (%)',
-                                color: textColor,
-                                font: { size: 14, weight: 'bold' }
-                            },
-                            grid: {
-                                color: gridColor
-                            },
-                            ticks: {
-                                color: textColor
-                            }
+                            min:0, max:100,
+                            title: { display:true, text:'النسبة المارة (%) | Percent Passing (%)', color:textColor, font:{size:13,weight:'bold'} },
+                            grid: { color: gridColor },
+                            ticks: { color:textColor, stepSize:10 }
                         }
                     },
                     plugins: {
-                        legend: {
-                            labels: {
-                                color: textColor,
-                                font: { size: 12 }
-                            }
-                        },
+                        legend: { labels:{color:textColor, font:{size:12}} },
                         tooltip: {
+                            filter: item => item.raw && item.raw.y !== null,
                             callbacks: {
-                                label: function(context) {
-                                    return `${context.parsed.y.toFixed(1)}% passing at ${context.parsed.x.toFixed(3)} mm`;
+                                label: c => {
+                                    if (!c.raw || c.raw.y === null) return null;
+                                    const lbl = sieveLabels[c.parsed.x] ? ' ('+sieveLabels[c.parsed.x]+')' : '';
+                                    return c.parsed.y.toFixed(1)+'% passing @ '+c.parsed.x.toFixed(3)+' mm'+lbl;
                                 }
                             }
                         }
@@ -3013,179 +4368,291 @@
             });
         }
 
-        // Generate final report
-        function generateFinalReport() {
-            // Header
-            document.getElementById('reportLabName').textContent = document.getElementById('labName').value || '-';
-            document.getElementById('reportReportNumber').textContent = document.getElementById('reportNumber').value || '-';
-            document.getElementById('reportReportDate').textContent = document.getElementById('reportDate').value || '-';
-
-            // Logo
-            const logoUrl = document.getElementById('labLogo').value;
-            const logoContainer = document.getElementById('reportLogoContainer');
-            if (logoUrl) {
-                logoContainer.innerHTML = `<img src="${logoUrl}" alt="Lab Logo">`;
-            } else {
-                logoContainer.innerHTML = '';
-            }
-
-            // Project info
-            document.getElementById('reportProjectName').textContent = document.getElementById('projectName').value || '-';
-            document.getElementById('reportProjectNumber').textContent = document.getElementById('projectNumber').value || '-';
-            document.getElementById('reportClient').textContent = document.getElementById('client').value || '-';
-            document.getElementById('reportLocation').textContent = document.getElementById('location').value || '-';
-
-            // Sample info
-            document.getElementById('reportSampleId').textContent = document.getElementById('sampleId').value || '-';
-            document.getElementById('reportSampleDescription').textContent = document.getElementById('sampleDescription').value || '-';
-            document.getElementById('reportTestDate').textContent = document.getElementById('testDate').value || '-';
-
-            // Test mode
-            const modeNames = {
-                'single': 'Single Sieve-Set | غربلة بمجموعة واحدة',
-                'composite-single': 'Composite Single Separation | غربلة مركبة - فصل واحد',
-                'composite-double': 'Composite Double Separation | غربلة مركبة - فصل مزدوج'
-            };
-            document.getElementById('reportTestMode').textContent = modeNames[currentTestMode] || '-';
-
-            // Test configuration
-            const method = document.getElementById('methodSelect').value;
-            document.getElementById('reportMethod').textContent = `Method ${method}`;
-            document.getElementById('reportMaxParticleSize').textContent = document.getElementById('maxParticleSize').value ? 
-                document.getElementById('maxParticleSize').value + ' mm' : '-';
-            
-            // Specimen mass based on test mode
-            let specimenMass = '-';
-            if (currentTestMode === 'single') {
-                specimenMass = document.getElementById('singleSpecimenMass').value;
-            } else if (currentTestMode === 'composite-single') {
-                const cpMd = parseFloat(document.getElementById('compCoarserMass').value) || 0;
-                const fpMm = parseFloat(document.getElementById('compFinerMoistMass').value) || 0;
-                const wfp = parseFloat(document.getElementById('compFinerWaterContent').value) || 0;
-                const fpMd = fpMm / (1 + wfp / 100);
-                specimenMass = (cpMd + fpMd).toFixed(2);
-            } else if (currentTestMode === 'composite-double') {
-                const cpMd = parseFloat(document.getElementById('double1stCPMd').value) || 0;
-                const fpMm = parseFloat(document.getElementById('double1stFPMm').value) || 0;
-                const wfp = parseFloat(document.getElementById('double1stFPw').value) || 0;
-                const fpMd = fpMm / (1 + wfp / 100);
-                specimenMass = (cpMd + fpMd).toFixed(2);
-            }
-            document.getElementById('reportSpecimenMass').textContent = specimenMass ? specimenMass + ' g' : '-';
-            
-            const temp = document.getElementById('labTemperature').value;
-            document.getElementById('reportTemperature').textContent = temp ? temp + ' °C' : '-';
-
-            // Classification
-            document.getElementById('reportGravel').textContent = document.getElementById('gravelPercent').textContent;
-            document.getElementById('reportSand').textContent = document.getElementById('sandPercent').textContent;
-            document.getElementById('reportFines').textContent = document.getElementById('finesPercent').textContent;
-            document.getElementById('reportUSCS').textContent = document.getElementById('uscsClass').textContent;
-            document.getElementById('reportUSCSDesc').textContent = document.getElementById('uscsDescription').textContent;
-            document.getElementById('reportAASHTO').textContent = document.getElementById('aashtoClass').textContent;
-            document.getElementById('reportAASHTODesc').textContent = document.getElementById('aashtoDescription').textContent;
-            document.getElementById('reportCu').textContent = document.getElementById('cuValue').textContent;
-            document.getElementById('reportCc').textContent = document.getElementById('ccValue').textContent;
-
-            // Gradation table — ALL rows from finalResults (no zero-filter)
-            const tbody = document.getElementById('reportGradationTableBody');
-            tbody.innerHTML = '';
-
-            finalResults.forEach(result => {
-                const prVal  = result.pr  != null ? result.pr.toFixed(1)  : '—';
-                const cprVal = result.cpr != null ? result.cpr.toFixed(1) : '—';
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td>${result.sieve}</td>
-                    <td>${result.opening.toFixed(3)}</td>
-                    <td>${prVal}</td>
-                    <td>${cprVal}</td>
-                    <td><strong>${result.pp.toFixed(1)}</strong></td>
-                `;
-            });
-
-            // Signatures
-            document.getElementById('reportTechnician').textContent = document.getElementById('technicianName').value || '-';
-            document.getElementById('reportReviewer').textContent = document.getElementById('reviewerName').value || '-';
-            document.getElementById('reportApprover').textContent = document.getElementById('approverName').value || '-';
-
-            // Create report chart
-            updateReportChart();
-        }
-
-        // Update report chart
-        function updateReportChart() {
+        function safeUpdateReportChart() {
             const ctx = document.getElementById('reportGradationChart');
-            
-            if (reportChartInstance) {
-                reportChartInstance.destroy();
-            }
+            if (!ctx) return;
+            if (reportChartInstance) { reportChartInstance.destroy(); reportChartInstance = null; }
 
-            // Filter out Pan (opening=0) — log scale can't handle zero
-            const data = finalResults
-                .filter(r => r.opening > 0)
-                .map(r => ({ x: r.opening, y: r.pp }));
-            data.sort((a, b) => a.x - b.x);
+            const rawData = trimActiveChartData(finalResults);
+            const { xMin, xMax } = chartAxisBounds(rawData);
+            const data = buildChartDataWithPadding(rawData, xMin, xMax);
+
+            const d10 = interpolateDValue(10);
+            const d30 = interpolateDValue(30);
+            const d60 = interpolateDValue(60);
+
+            const rptLabels = {
+                0.075:'0.075', 0.106:'0.106', 0.150:'0.150', 0.250:'0.250',
+                0.425:'0.425', 0.850:'0.850', 2.00:'2.00', 4.75:'4.75',
+                9.5:'9.5', 12.5:'12.5', 19.0:'19', 25.0:'25', 37.5:'37.5', 50.0:'50', 75.0:'75'
+            };
+
+            const annotationPlugin = {
+                id: 'gradAnnotations',
+                afterDraw(chart) {
+                    const ctx2 = chart.ctx, xs = chart.scales.x, ys = chart.scales.y;
+                    if (!xs || !ys) return;
+                    [[d10,10,'D10'],[d30,30,'D30'],[d60,60,'D60']].forEach(([d,p,lbl]) => {
+                        if (!d || d <= 0 || d < xMin*0.5 || d > xMax*2) return;
+                        try {
+                            const px = xs.getPixelForValue(d), py = ys.getPixelForValue(p);
+                            ctx2.save();
+                            ctx2.strokeStyle='#c00'; ctx2.setLineDash([3,2]); ctx2.lineWidth=0.8;
+                            ctx2.beginPath(); ctx2.moveTo(px,ys.bottom); ctx2.lineTo(px,py); ctx2.stroke();
+                            ctx2.beginPath(); ctx2.moveTo(xs.left,py); ctx2.lineTo(px,py); ctx2.stroke();
+                            ctx2.setLineDash([]); ctx2.fillStyle='#c00'; ctx2.font='bold 6px Arial';
+                            ctx2.fillText(lbl,px+2,py-2); ctx2.restore();
+                        } catch(e){}
+                    });
+                    const zones=[0.075,0.425,2.0,4.75,19.0].filter(z=>z>=xMin&&z<=xMax);
+                    ctx2.save(); ctx2.strokeStyle='#bbb'; ctx2.setLineDash([3,3]); ctx2.lineWidth=0.6;
+                    zones.forEach(z=>{ try{const px=xs.getPixelForValue(z); ctx2.beginPath(); ctx2.moveTo(px,ys.top); ctx2.lineTo(px,ys.bottom); ctx2.stroke();}catch(e){} });
+                    ctx2.restore();
+                }
+            };
 
             reportChartInstance = new Chart(ctx, {
                 type: 'line',
+                plugins: [annotationPlugin],
                 data: {
                     datasets: [{
                         label: '% Passing',
                         data: data,
-                        borderColor: '#0d6efd',
-                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                        borderWidth: 2,
-                        pointRadius: 4,
-                        tension: 0.1
+                        borderColor: '#000',
+                        backgroundColor: 'transparent',
+                        borderWidth: 1.5,
+                        pointRadius: (c) => (c.raw && c.raw.y !== null) ? 3 : 0,
+                        pointBackgroundColor: '#000',
+                        tension: 0.15,
+                        spanGaps: false
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
+                    responsive:true, maintainAspectRatio:false, animation:false,
+                    layout:{padding:{top:2,right:8,bottom:2,left:2}},
                     scales: {
                         x: {
-                            type: 'logarithmic',
-                            reverse: true,
-                            title: {
-                                display: true,
-                                text: 'Particle Size (mm)',
-                                color: '#000',
-                                font: { size: 12, weight: 'bold' }
-                            },
-                            grid: { color: '#ddd' },
-                            ticks: {
-                                color: '#000',
-                                callback: function(value) {
-                                    return value.toFixed(3);
+                            type:'logarithmic', reverse:true,
+                            min: xMin, max: xMax,
+                            title:{display:true,text:'Particle Size (mm)',color:'#000',font:{size:7,weight:'bold'}},
+                            grid:{color:'#ccc',lineWidth:0.5},
+                            ticks:{
+                                color:'#000', font:{size:6}, maxRotation:45, autoSkip:false,
+                                callback: v => {
+                                    if (v < xMin*0.9 || v > xMax*1.1) return null;
+                                    const inSet = Object.keys(rptLabels).some(k => Math.abs(parseFloat(k)-v)/Math.max(parseFloat(k),v) < 0.01);
+                                    if (!inSet) return null;
+                                    return rptLabels[v] || (v>=1?v.toFixed(0):v>=0.1?v.toFixed(3):v.toFixed(4));
                                 }
                             }
                         },
                         y: {
-                            min: 0,
-                            max: 100,
-                            title: {
-                                display: true,
-                                text: 'Percent Passing (%)',
-                                color: '#000',
-                                font: { size: 12, weight: 'bold' }
-                            },
-                            grid: { color: '#ddd' },
-                            ticks: { color: '#000' }
+                            min:0, max:100,
+                            title:{display:true,text:'Percent Passing (%)',color:'#000',font:{size:7,weight:'bold'}},
+                            grid:{color:'#ccc',lineWidth:0.5},
+                            ticks:{color:'#000',font:{size:6},stepSize:10}
                         }
                     },
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#000',
-                                font: { size: 11 }
-                            }
+                    plugins:{
+                        legend:{display:false},
+                        tooltip:{
+                            filter: item => item.raw && item.raw.y !== null,
+                            callbacks:{label:c=>{ if(!c.raw||c.raw.y===null) return null; return c.parsed.y.toFixed(1)+'% @ '+c.parsed.x.toFixed(3)+'mm'; }}
                         }
                     }
                 }
             });
         }
+        // ═══════════════════════════════════════════════════════
+        // Generate final report — pulls all data into report tab
+        // ═══════════════════════════════════════════════════════
+        function generateFinalReport() {
+            const $  = id => document.getElementById(id);
+            const val= id => { const e=$(id); return e?(e.value||''):''; };
+            const txt= (id,s)=>{ const e=$(id); if(e) e.textContent=(s!=null&&s!=='')?s:''; };
+            const chk= (id,on)=>{ const e=$(id); if(e) e.className='ck'+(on?' on':''); };
 
+            // LAB NAME in header bar
+            const labNameEl = document.getElementById('r-labname-bar');
+            if (labNameEl) labNameEl.textContent = val('labName') || 'Laboratory Name';
+
+            // PROJECT INFORMATION
+            txt('r-proj',   val('projectName'));
+            txt('r-repno',  val('reportNumber'));
+            txt('r-client', val('client')||val('contractor'));
+            txt('r-repdate',val('reportDate'));
+            txt('r-sid',    val('sampleId'));
+            txt('r-sdate',  val('sampleDate')||val('testDate'));
+            txt('r-tdate',  val('testDate'));
+            txt('r-recv',   val('dateReceived'));
+            txt('r-loc',    val('location'));
+            txt('r-desc',   val('sampleDescription'));
+            txt('r-maxps',  val('maxParticleSize'));
+            txt('r-temp',   val('labTemperature'));
+            txt('r-hum',    val('relativeHumidity'));
+
+            const st=val('sampleType');
+            chk('ck-dist',  st==='disturbed'||st==='');
+            chk('ck-undist',st==='undisturbed');
+            const pm=val('preparationMethod');
+            chk('ck-dry',pm==='dry'||pm==='');
+            chk('ck-wet',pm==='wet');
+
+            // EQUIPMENT
+            txt('eq-bal',     val('balanceId'));
+            txt('eq-bal-cal', val('balanceCalExp'));
+            txt('eq-shk',     val('sieveShakerId'));
+            txt('eq-shk-cal', val('shakerCalExp'));
+            txt('eq-ovn',     val('ovenId'));
+            txt('eq-ovn-cal', val('ovenCalExp'));
+            txt('eq-timer',   val('timerId'));
+            txt('eq-sieve-ids',val('sieveSetIds')||'___________');
+
+            // TEST PROCEDURE
+            const mode=currentTestMode, method=val('methodSelect'),
+                  tech=val('sievingTechnique'), wash=val('washNo200');
+            chk('ck-single-stage',mode==='single');
+            chk('ck-multi-stage', mode!=='single');
+            chk('ck-single-split',mode==='composite-single');
+            chk('ck-dual-split',  mode==='composite-double');
+            chk('ck-methA',method==='A'||method==='');
+            chk('ck-methB',method==='B');
+            chk('ck-manual',    tech==='manual');
+            chk('ck-mechanical',tech==='mechanical'||tech==='');
+            chk('ck-combined',  tech==='combined');
+            chk('ck-wash-yes',  wash==='yes');
+            chk('ck-wash-no',   wash==='no'||wash==='');
+            txt('r-shake-dur',val('shakingDuration'));
+            txt('r-aft-mass', val('massAfterSieving'));
+
+            let iniMass='';
+            if(mode==='single'){
+                iniMass=val('singleSpecimenMass');
+            } else if(mode==='composite-single'){
+                const c=parseFloat(val('compCoarserMass'))||0;
+                const f=parseFloat(val('compFinerMoistMass'))||0;
+                const w=parseFloat(val('compFinerWaterContent'))||0;
+                if(c>0) iniMass=(c+f/(1+w/100)).toFixed(2);
+            } else if(mode==='composite-double'){
+                const c=parseFloat(val('double1stCPMd'))||0;
+                const f=parseFloat(val('double1stFPMm'))||0;
+                const w=parseFloat(val('double1stFPw'))||0;
+                if(c>0) iniMass=(c+f/(1+w/100)).toFixed(2);
+            }
+            txt('r-ini-mass',iniMass);
+            const iniM=parseFloat(iniMass)||0, aftM=parseFloat(val('massAfterSieving'))||0;
+            let mloss='';
+            if(iniM>0&&aftM>0) mloss=((iniM-aftM)/iniM*100).toFixed(2);
+            txt('r-mass-loss',mloss);
+            txt('rpt-mass-loss2',mloss);
+
+            // SIEVE TABLE
+            const sieveDisplay={
+                '3 in':'3 inch / 75.0 mm','2 in':'2 inch / 50.0 mm',
+                '1.5 in':'1.5 inch / 37.5 mm','1 in':'1 inch / 25.0 mm',
+                '3/4 in':'3/4 inch / 19.0 mm','3/8 in':'3/8 inch / 9.5 mm',
+                'No. 4':'No.4 / 4.75 mm','No. 10':'No.10 / 2.00 mm',
+                'No. 20':'No.20 / 0.850 mm','No. 40':'No.40 / 0.425 mm',
+                'No. 60':'No.60 / 0.250 mm','No. 100':'No.100 / 0.150 mm',
+                'No. 140':'No.140 / 0.106 mm','No. 200':'No.200 / 0.075 mm','Pan':'Pan'
+            };
+            const tbody=$('rpt-sieve-body');
+            tbody.innerHTML='';
+            let totalMR=0;
+            finalResults.forEach(r=>{ totalMR+=(r.mr||0); });
+
+            if(finalResults.length===0){
+                tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:#888;">— No results yet —</td></tr>';
+            } else {
+                let firstActive=false;
+                finalResults.forEach(r=>{
+                    const isPan=r.opening<0.001;
+                    const hasCMR=(r.cmr||0)>0.0001;
+                    const ppBelow100=r.pp<99.99;
+                    if(!firstActive&&!hasCMR&&!ppBelow100&&!isPan) return;
+                    if(hasCMR||ppBelow100||isPan) firstActive=true;
+                    if(!firstActive) return;
+                    const tr=document.createElement('tr');
+                    const name=sieveDisplay[r.sieve]||r.sieve;
+                    const mr=(r.mr||0).toFixed(2);
+                    const cmr=r.cmr!=null?r.cmr.toFixed(2):'0.00';
+                    const pr=r.pr!=null?r.pr.toFixed(1):'0.0';
+                    const pp=r.pp!=null?r.pp.toFixed(1):'100.0';
+                    if(isPan) tr.style.background='#f0f0f0';
+                    tr.innerHTML='<td>'+name+'</td><td>'+mr+'</td><td>'+cmr+'</td><td>'+pr+'</td><td><strong>'+pp+'</strong></td>';
+                    tbody.appendChild(tr);
+                });
+            }
+            txt('rpt-total-mr',totalMR>0?totalMR.toFixed(2):'');
+
+            // FRACTIONS
+            const finesRow=finalResults.find(r=>Math.abs(r.opening-0.075)<0.001);
+            const no4Row  =finalResults.find(r=>Math.abs(r.opening-4.75)<0.001);
+            const fines=finesRow?finesRow.pp:0;
+            const no4=no4Row?no4Row.pp:100;
+            const gravel=100-no4, sand=no4-fines;
+            txt('rpt-frac-gravel',gravel.toFixed(1));
+            txt('rpt-frac-sand',  sand.toFixed(1));
+            txt('rpt-frac-fines', fines.toFixed(1));
+            txt('r-g2',gravel.toFixed(1)); txt('r-s2',sand.toFixed(1)); txt('r-f2',fines.toFixed(1));
+
+            // CLASSIFICATION
+            const ll=parseFloat(val('liquidLimit'))||0;
+            const pl=parseFloat(val('plasticLimit'))||0;
+            const pi=parseFloat(val('plasticityIndex'))||0;
+            const getNum=(id)=>{ const e=$(id); return e?parseFloat(e.textContent)||0:0; };
+            const d10=getNum('d10Value'),d30=getNum('d30Value'),d60=getNum('d60Value');
+            const cu=getNum('cuValue'),cc=getNum('ccValue');
+            const uscs=$('uscsClass'),uscsD=$('uscsDescription');
+            const aashto=$('aashtoClass'),aashtoD=$('aashtoDescription');
+            txt('r-ll', ll>0?ll.toFixed(0):'—');
+            txt('r-pl', pl>0?pl.toFixed(0):'—');
+            txt('r-pi', pi>0?pi.toFixed(0):'—');
+            txt('r-d10',d10>0?d10.toFixed(3):'N/A');
+            txt('r-d30',d30>0?d30.toFixed(3):'N/A');
+            txt('r-d60',d60>0?d60.toFixed(3):'N/A');
+            txt('r-cc', cc>0?cc.toFixed(2):'N/A');
+            txt('r-cu', cu>0?cu.toFixed(2):'N/A');
+            const uSym=uscs?uscs.textContent:'—';
+            const uDesc=uscsD?uscsD.textContent:'';
+            const aSym=aashto?aashto.textContent:'—';
+            const aDesc=aashtoD?aashtoD.textContent:'';
+            txt('r-uscs',  uSym+(uDesc&&uDesc!=='—'?'  —  '+uDesc:''));
+            txt('r-aashto',aSym+(aDesc?'  —  '+aDesc:''));
+
+            const ht=val('hydroTest');
+            chk('ck-hydro-yes',ht==='yes');
+            chk('ck-hydro-no', ht!=='yes');
+
+            txt('r-remarks',val('remarks'));
+            txt('sig-qm',val('reviewerName')||val('approverName'));
+            txt('sig-tm',val('technicianName'));
+            txt('sig-ir',val('independentReviewer'));
+
+            // Chart — use wrapper so Chart.js availability check applies
+            updateReportChart();
+        }
+
+
+        // Chart wrappers — use Chart.js if available, else native Canvas
+        function updateGradationChart() {
+            if (typeof Chart !== 'undefined') {
+                safeUpdateGradationChart();
+            } else {
+                const raw = trimActiveChartData(finalResults);
+                const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+                drawNativeChart('gradationChart', raw, isDark, false);
+            }
+        }
+
+        function updateReportChart() {
+            if (typeof Chart !== 'undefined') {
+                safeUpdateReportChart();
+            } else {
+                const raw = trimActiveChartData(finalResults);
+                drawNativeChart('reportGradationChart', raw, false, true);
+            }
+        }
         // Collapsible sections
         function toggleCollapse(header) {
             const content = header.nextElementSibling;
@@ -3214,6 +4681,7 @@
         // Save to localStorage
         function saveToLocalStorage() {
             const data = {
+                version: '2.0',
                 testMode: currentTestMode,
                 formData: {},
                 finalResults: finalResults
@@ -3233,44 +4701,38 @@
             localStorage.setItem('astmD6913Data', JSON.stringify(data));
         }
 
-        // Load from localStorage
+        // Load from localStorage — fixed with version guard
         function loadFromLocalStorage() {
             const saved = localStorage.getItem('astmD6913Data');
             if (!saved) return;
 
             try {
                 const data = JSON.parse(saved);
-                
+
+                // Version guard — clear stale data from older versions
+                if (!data.version || data.version < '2.0') {
+                    localStorage.removeItem('astmD6913Data');
+                    return;
+                }
+
                 currentTestMode = data.testMode || 'single';
                 finalResults = data.finalResults || [];
 
-                // Restore form data
-                Object.keys(data.formData).forEach(id => {
-                    const input = document.getElementById(id);
-                    if (input) {
-                        if (input.type === 'checkbox') {
-                            input.checked = data.formData[id];
-                        } else {
-                            input.value = data.formData[id];
+                if (data.formData) {
+                    Object.keys(data.formData).forEach(id => {
+                        const input = document.getElementById(id);
+                        if (input) {
+                            if (input.type === 'checkbox') input.checked = data.formData[id];
+                            else input.value = data.formData[id];
                         }
-                    }
-                });
+                    });
+                }
 
-                // Update mode selection
-                document.querySelectorAll('.mode-option').forEach(opt => {
-                    opt.classList.remove('selected');
-                });
-                const modeMap = {
-                    'single': 0,
-                    'composite-single': 1,
-                    'composite-double': 2
-                };
-                document.querySelectorAll('.mode-option')[modeMap[currentTestMode]].classList.add('selected');
-                
                 selectTestMode(currentTestMode);
 
             } catch (e) {
-                console.error('Error loading saved data:', e);
+                console.warn('Clearing stale localStorage:', e.message);
+                localStorage.removeItem('astmD6913Data');
             }
         }
 
@@ -3368,191 +4830,81 @@
             alert('✅ تم التصدير | Exported successfully');
         }
 
-        // Load demo data
+        // Load demo data — improved: loads complete single-sieve demo with realistic well-graded sand
         function loadDemoData() {
-            const mode = prompt('اختر وضع البيانات التجريبية | Select demo data mode:\n\n1 - Single sieve-set (غربلة واحدة)\n2 - Composite single (غربلة مركبة - فصل واحد)\n3 - Composite double (غربلة مركبة - فصل مزدوج)\n\nأدخل الرقم | Enter number:', '1');
-            
-            if (!mode || !['1', '2', '3'].includes(mode)) {
-                return;
-            }
+            // ── Lab & Project Info ──────────────────────────────────
+            document.getElementById('labName').value        = 'Advanced Geotechnical Laboratory';
+            document.getElementById('reportNumber').value   = 'GT-2026-047';
+            document.getElementById('technicianName').value = 'Eng. Ahmed Al-Qasaby';
+            document.getElementById('reviewerName').value   = 'Dr. Sara Ali — Quality Manager';
+            document.getElementById('approverName').value   = 'Eng. Mahmoud Hassan — Technical Manager';
+            document.getElementById('balanceId').value      = 'BAL-001 (Cal. 2026-01)';
+            document.getElementById('sieveShakerId').value  = 'SHK-002 (Cal. 2026-01)';
+            document.getElementById('ovenId').value         = 'OVN-003 (Cal. 2026-01)';
+            document.getElementById('sievingTechnique').value = 'mechanical';
 
-            // Lab info
-            document.getElementById('labName').value = 'مختبر الجيوتقنيك المتقدم | Advanced Geotechnical Laboratory';
-            document.getElementById('reportNumber').value = 'GT-2024-001';
-            document.getElementById('technicianName').value = 'أحمد محمد | Ahmed Mohammed';
-            document.getElementById('reviewerName').value = 'د. سارة علي | Dr. Sara Ali';
-            document.getElementById('approverName').value = 'م. محمود حسن | Eng. Mahmoud Hassan';
+            document.getElementById('projectName').value    = 'New Ring Road Infrastructure — Phase 3';
+            document.getElementById('projectNumber').value  = 'RR-2026-P3';
+            document.getElementById('client').value         = 'Ministry of Transport & Infrastructure';
+            document.getElementById('contractor').value     = 'National Construction Co.';
+            document.getElementById('location').value       = 'Cairo — Km 42+500, BH-7';
 
-            // Project info
-            document.getElementById('projectName').value = 'مشروع الطريق السريع الجديد | New Highway Project';
-            document.getElementById('projectNumber').value = 'HW-2024-15';
-            document.getElementById('client').value = 'وزارة النقل | Ministry of Transport';
-            document.getElementById('location').value = 'القاهرة، مصر | Cairo, Egypt';
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('sampleId').value          = 'BH-7-S3';
+            document.getElementById('sampleDescription').value = 'Silty sand with gravel — Medium dense, brown';
+            document.getElementById('sampleSource').value      = 'Borehole 7 @ 3.5–4.0 m depth';
+            document.getElementById('dateReceived').value      = today;
+            document.getElementById('testDate').value          = today;
+            document.getElementById('reportDate').value        = today;
+            document.getElementById('labTemperature').value    = '23.5';
+            document.getElementById('relativeHumidity').value  = '52';
 
-            // Sample info
-            document.getElementById('sampleId').value = 'BH-3-S2';
-            document.getElementById('sampleDescription').value = mode === '1' ? 'رمل سلتي بني | Brown silty sand' : 
-                                                                mode === '2' ? 'رمل مع حصى | Sand with gravel' :
-                                                                'تربة متدرجة جيداً | Well-graded soil';
-            document.getElementById('testDate').value = new Date().toISOString().split('T')[0];
-            document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
-
-            // Environmental
-            document.getElementById('labTemperature').value = '23.5';
-            document.getElementById('relativeHumidity').value = '55';
-
-            // Atterberg limits
-            document.getElementById('liquidLimit').value = mode === '1' ? '28' : mode === '2' ? '22' : '25';
-            document.getElementById('plasticLimit').value = mode === '1' ? '18' : mode === '2' ? '15' : '16';
+            document.getElementById('liquidLimit').value   = '24';
+            document.getElementById('plasticLimit').value  = '16';
             calculatePI();
 
-            // Test data
-            document.getElementById('methodSelect').value = 'A';
-            
-            if (mode === '1') {
-                // Single sieve-set demo
-                document.getElementById('maxParticleSize').value = '9.5';
-                document.getElementById('singleSpecimenMass').value = '500.00';
+            // ── Test Config ─────────────────────────────────────────
+            document.getElementById('methodSelect').value       = 'A';
+            document.getElementById('maxParticleSize').value    = '9.5';
+            document.getElementById('singleSpecimenMass').value = '500.00';
 
-                const demoData = {
-                    6: 485.50,  // No. 4
-                    7: 487.30,  // No. 10
-                    8: 490.15,  // No. 20
-                    9: 493.80,  // No. 40
-                    10: 495.50, // No. 60
-                    11: 496.80, // No. 100
-                    12: 497.40, // No. 140
-                    13: 498.10, // No. 200
-                    14: 500.00  // Pan
-                };
+            // ── Sieve Data — realistic well-graded silty sand ───────
+            // CMR values for a SW-SM soil with nice S-curve
+            // Sieves: 3in(0) 2in(1) 1.5in(2) 1in(3) 3/4in(4) 3/8in(5) No4(6)
+            //         No10(7) No20(8) No40(9) No60(10) No100(11) No140(12) No200(13) Pan(14)
+            const singleCMR = {
+                6:  18.5,   // No. 4    — 3.7% retained → 96.3% passing
+                7:  53.0,   // No. 10   — 6.9% retained → 89.4% passing
+                8: 112.0,   // No. 20   — 11.8% retained → 77.6% passing
+                9: 198.5,   // No. 40   — 17.3% retained → 60.3% passing
+               10: 298.0,   // No. 60   — 19.9% retained → 40.4% passing
+               11: 378.0,   // No. 100  — 16.0% retained → 24.4% passing
+               12: 420.0,   // No. 140  — 8.4% retained  → 16.0% passing
+               13: 458.0,   // No. 200  — 7.6% retained  → 8.4%  passing
+               14: 500.0    // Pan      — 8.4%
+            };
 
-                Object.keys(demoData).forEach(index => {
-                    const input = document.getElementById(`single_cmr_${index}`);
-                    if (input) input.value = demoData[index];
-                });
+            // Select single mode first
+            selectTestMode('single');
 
-                document.querySelectorAll('.mode-option')[0].click();
-                setTimeout(() => calculateSingle(), 100);
+            Object.keys(singleCMR).forEach(idx => {
+                const input = document.getElementById(`single_cmr_${idx}`);
+                if (input) input.value = singleCMR[idx];
+            });
 
-            } else if (mode === '2') {
-                // Composite single separation demo
-                document.getElementById('maxParticleSize').value = '25.0';
-                document.getElementById('compCoarserMass').value = '3500.0';
-                document.getElementById('compFinerMoistMass').value = '1550.0';
-                document.getElementById('compFinerWaterContent').value = '3.2';
-                document.getElementById('compSubspecimenMass').value = '1500.0';
-                document.getElementById('compCoarserWashedMass').value = '3498.0';
-                document.getElementById('compCoarserPanMass').value = '1.5';
-                document.getElementById('compSingleSeparatingSieve').value = '4.75';
-
-                // Coarser portion data
-                const coarserData = {
-                    3: 850.0,   // 1 in
-                    4: 2150.0,  // 3/4 in
-                    5: 3100.0,  // 3/8 in
-                    6: 3480.0,  // No. 4
-                    14: 3500.0  // Pan
-                };
-
-                Object.keys(coarserData).forEach(index => {
-                    const input = document.getElementById(`compCoarser_cmr_${index}`);
-                    if (input) input.value = coarserData[index];
-                });
-
-                // Finer portion data
-                const finerData = {
-                    7: 245.0,   // No. 10
-                    8: 580.0,   // No. 20
-                    9: 920.0,   // No. 40
-                    10: 1150.0, // No. 60
-                    11: 1320.0, // No. 100
-                    12: 1395.0, // No. 140
-                    13: 1455.0, // No. 200
-                    14: 1500.0  // Pan
-                };
-
-                Object.keys(finerData).forEach(index => {
-                    const input = document.getElementById(`compFiner_fcmr_${index}`);
-                    if (input) input.value = finerData[index];
-                });
-
-                document.querySelectorAll('.mode-option')[1].click();
-                setTimeout(() => calculateCompositeSingle(), 100);
-
-            } else if (mode === '3') {
-                // Composite double separation demo
-                document.getElementById('maxParticleSize').value = '75.0';
-                
-                // 1st separation data
-                document.getElementById('double1stCPMd').value = '5000.0';
-                document.getElementById('double1stFPMm').value = '3100.0';
-                document.getElementById('double1stFPw').value = '3.3';
-                document.getElementById('double1stSubSMd').value = '3000.0';
-                document.getElementById('compDouble1stSieve').value = '19.0';
-                
-                // 2nd separation data
-                document.getElementById('double2ndCPMd').value = '1800.0';
-                document.getElementById('double2ndCPwMd').value = '1795.0';
-                document.getElementById('double2ndCPMRpan').value = '2.5';
-                document.getElementById('double2ndSubSMd').value = '1200.0';
-                document.getElementById('compDouble2ndSieve').value = '4.75';
-
-                // 1st Coarser portion data
-                const double1stCoarserData = {
-                    0: 250.0,   // 3 in
-                    1: 1200.0,  // 2 in
-                    2: 2500.0,  // 1.5 in
-                    3: 3800.0,  // 1 in
-                    4: 4750.0,  // 3/4 in
-                    5: 4950.0,  // 3/8 in
-                    6: 4995.0,  // No. 4
-                    14: 5000.0  // Pan
-                };
-
-                Object.keys(double1stCoarserData).forEach(index => {
-                    const input = document.getElementById(`double1stCP_cmr_${index}`);
-                    if (input) input.value = double1stCoarserData[index];
-                });
-
-                // 2nd Coarser portion data
-                const double2ndCoarserData = {
-                    4: 320.0,   // 3/4 in
-                    5: 850.0,   // 3/8 in
-                    6: 1650.0,  // No. 4
-                    7: 1740.0,  // No. 10
-                    8: 1785.0,  // No. 20
-                    9: 1795.0   // No. 40
-                };
-
-                Object.keys(double2ndCoarserData).forEach(index => {
-                    const input = document.getElementById(`double2ndCP_fcmr_${index}`);
-                    if (input) input.value = double2ndCoarserData[index];
-                });
-
-                // 2nd Subspecimen data
-                const double2ndSubSData = {
-                    6: 180.0,   // No. 4
-                    7: 385.0,   // No. 10
-                    8: 695.0,   // No. 20
-                    9: 920.0,   // No. 40
-                    10: 1050.0, // No. 60
-                    11: 1125.0, // No. 100
-                    12: 1160.0, // No. 140
-                    13: 1185.0, // No. 200
-                    14: 1200.0  // Pan
-                };
-
-                Object.keys(double2ndSubSData).forEach(index => {
-                    const input = document.getElementById(`double2ndSubS_fcmr_${index}`);
-                    if (input) input.value = double2ndSubSData[index];
-                });
-
-                document.querySelectorAll('.mode-option')[2].click();
-                setTimeout(() => calculateDoubleComposite(), 100);
-            }
-
-            autoSave();
-            alert('✅ تم تحميل البيانات التجريبية | Demo data loaded successfully');
+            // Auto-calculate after DOM settles, then switch to Results tab, then Report
+            setTimeout(() => {
+                calculateSingle();
+                autoSave();
+                setTimeout(() => {
+                    // Go to tab3 to compute displayFinalResults first
+                    switchTab('tab3');
+                    setTimeout(() => {
+                        // Then go to tab4 with the full report
+                        switchTab('tab4');
+                    }, 400);
+                }, 200);
+            }, 150);
         }
 
         // Reset all
