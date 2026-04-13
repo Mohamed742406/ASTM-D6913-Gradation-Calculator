@@ -909,6 +909,35 @@
             #rpt-wrap .sig-body .sb   { padding: 1.5px 4px !important; }
         }
         @page { size: A4 portrait; margin: 5mm 8mm; }
+        /* ══ User Guide Component Styles ══ */
+        .gtab { flex:1; min-width:90px; padding:10px 6px; border:none; cursor:pointer; font-weight:700; font-size:0.8rem; background:var(--bg-primary); color:var(--text-primary); border-bottom:3px solid transparent; transition:all 0.2s; }
+        .gtab:hover { background:var(--bg-tertiary); }
+        .gtab-active { background:var(--accent-color) !important; color:#fff !important; }
+        .gcard { border-radius:8px; padding:14px 16px; margin-bottom:12px; border-right:5px solid; background:var(--bg-tertiary); color:var(--text-primary); }
+        .gcol-blue  { border-right-color:#0d6efd; }
+        .gcol-green { border-right-color:#198754; }
+        .gcol-yellow{ border-right-color:#ffc107; }
+        .gcol-red   { border-right-color:#dc3545; }
+        .gcol-purple{ border-right-color:#6f42c1; }
+        .gcardtitle { font-weight:700; font-size:0.97rem; margin-bottom:8px; color:var(--text-primary); }
+        .glist { padding-right:20px; margin:4px 0 0; }
+        .glist li { margin-bottom:4px; }
+        .ginfo-box { background:var(--bg-tertiary); border:1px solid var(--border-color); border-right:5px solid var(--accent-color); border-radius:8px; padding:12px 14px; margin-bottom:14px; color:var(--text-primary); }
+        .gstep { display:flex; gap:12px; align-items:flex-start; background:var(--bg-tertiary); border-radius:8px; padding:12px 14px; margin-bottom:10px; }
+        .gstep-num { background:var(--accent-color); color:#fff; border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem; flex-shrink:0; }
+        .gstep-title { font-weight:700; color:var(--text-primary); margin-bottom:6px; font-size:0.95rem; }
+        .gcalc-section { margin-bottom:16px; }
+        .gcalc-title { font-weight:800; font-size:1rem; color:var(--text-primary); padding:8px 12px; background:var(--bg-tertiary); border-radius:6px 6px 0 0; border-bottom:2px solid var(--accent-color); }
+        .gcalc-box { background:var(--bg-secondary); border:1px solid var(--border-color); border-top:none; padding:10px 14px; }
+        .gcalc-box:last-child { border-radius:0 0 6px 6px; }
+        .gcalc-formula { font-family:monospace; font-size:0.95rem; color:var(--accent-color); font-weight:700; margin-bottom:4px; direction:ltr; text-align:left; }
+        .gcalc-explain { font-size:0.86rem; color:var(--text-secondary); }
+        .gnote-card { border-radius:8px; padding:14px 16px; margin-bottom:12px; color:var(--text-primary); }
+        .gnote-yellow { background:var(--bg-tertiary); border-right:5px solid #ffc107; }
+        .gnote-blue   { background:var(--bg-tertiary); border-right:5px solid #0d6efd; }
+        .gnote-purple { background:var(--bg-tertiary); border-right:5px solid #6f42c1; }
+        .gnote-title  { font-weight:700; margin-bottom:8px; color:var(--text-primary); font-size:0.97rem; }
+
 
         /* Report Specific Styles (legacy, kept for other sections) */
         .report-header {
@@ -2107,245 +2136,242 @@
     </div>
 
     <!-- User Guide Modal -->
-    <div id="userGuideModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;overflow-y:auto;padding:20px;">
-        <div style="max-width:860px;margin:0 auto;background:var(--bg-secondary);border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.4);overflow:hidden;">
-            <div style="background:linear-gradient(135deg,#0a2342,#0d6efd);color:#fff;padding:20px 25px;display:flex;justify-content:space-between;align-items:center;">
-                <div>
-                    <div style="font-size:1.3rem;font-weight:700;">&#x1F4D6; دليل المستخدم الشامل</div>
-                    <div style="font-size:0.85rem;opacity:0.8;margin-top:3px;">ASTM D6913/D6913M-17 — إجراء الاختبار والاستخدام</div>
-                </div>
-                <button onclick="document.getElementById('userGuideModal').style.display='none'" style="background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:1.5rem;width:38px;height:38px;border-radius:50%;cursor:pointer;">&#xD7;</button>
-            </div>
-            <div id="guide-tabbar" style="display:flex;background:var(--bg-tertiary);border-bottom:2px solid var(--border-color);flex-wrap:wrap;">
-                <button onclick="showGuideTab('use')" id="gtab-use" style="flex:1;min-width:100px;padding:10px 6px;border:none;background:#0d6efd;color:#fff;cursor:pointer;font-weight:700;font-size:0.82rem;">&#x1F4F1; الاستخدام</button>
-                <button onclick="showGuideTab('single')" id="gtab-single" style="flex:1;min-width:100px;padding:10px 6px;border:none;background:var(--bg-tertiary);color:var(--text-primary);cursor:pointer;font-weight:700;font-size:0.82rem;">&#x1F535; المفرد</button>
-                <button onclick="showGuideTab('comp1')" id="gtab-comp1" style="flex:1;min-width:100px;padding:10px 6px;border:none;background:var(--bg-tertiary);color:var(--text-primary);cursor:pointer;font-weight:700;font-size:0.82rem;">&#x1F7E1; مركب أحادي</button>
-                <button onclick="showGuideTab('comp2')" id="gtab-comp2" style="flex:1;min-width:100px;padding:10px 6px;border:none;background:var(--bg-tertiary);color:var(--text-primary);cursor:pointer;font-weight:700;font-size:0.82rem;">&#x1F534; مركب مزدوج</button>
-                <button onclick="showGuideTab('notes')" id="gtab-notes" style="flex:1;min-width:100px;padding:10px 6px;border:none;background:var(--bg-tertiary);color:var(--text-primary);cursor:pointer;font-weight:700;font-size:0.82rem;">&#x26A0;&#xFE0F; تنبيهات</button>
-            </div>
-            <div style="padding:20px;direction:rtl;font-family:'Segoe UI',Tahoma,sans-serif;color:var(--text-primary);line-height:1.75;font-size:0.91rem;max-height:68vh;overflow-y:auto;">
+    <div id="userGuideModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;overflow-y:auto;padding:20px;">
+      <div style="max-width:900px;margin:0 auto;background:var(--bg-secondary);border-radius:14px;box-shadow:0 10px 50px rgba(0,0,0,0.5);overflow:hidden;">
 
-            <!-- TAB: USE -->
-            <div id="guide-content-use">
-                <div style="background:var(--bg-tertiary);border-radius:8px;padding:14px;margin-bottom:12px;border-right:5px solid #0d6efd;">
-                    <strong style="color:#0d6efd;">&#x1F4CB; الخطوة 1 — بيانات المشروع والمعمل (تاب 1)</strong>
-                    <ul style="padding-right:18px;margin:6px 0 0;">
-                        <li><strong>اسم المعمل:</strong> يظهر في رأس التقرير تلقائياً.</li>
-                        <li><strong>رقم التقرير / الفني / المراجع / المعتمد:</strong> تظهر في توقيعات التقرير.</li>
-                        <li><strong>معرّفات الأجهزة:</strong> Balance / Sieve Shaker / Oven — متطلبات ISO 17025.</li>
-                        <li><strong>بيانات العينة:</strong> Sample ID، وصف التربة، تواريخ الاستلام والاختبار.</li>
-                        <li><strong>أتربرج:</strong> LL و PL — يحسب PI تلقائياً لتصنيف USCS و AASHTO.</li>
-                    </ul>
-                </div>
-                <div style="background:var(--bg-tertiary);border-radius:8px;padding:14px;margin-bottom:12px;border-right:5px solid #198754;">
-                    <strong style="color:#198754;">&#x2697;&#xFE0F; الخطوة 2 — إدخال بيانات الغربلة (تاب 2)</strong>
-                    <ul style="padding-right:18px;margin:6px 0 0;">
-                        <li>اختر <strong>قطر المناخل</strong> (200/305/370×580 mm) — يؤثر على حدود الحمل الأقصى Table 3.</li>
-                        <li>اختر <strong>Method A</strong> أو <strong>Method B</strong> ثم نوع الغربلة (Single / Composite).</li>
-                        <li>أدخل <strong>CMR</strong> لكل منخل ← اضغط "احسب" ← تُحسب النسب تلقائياً.</li>
-                    </ul>
-                </div>
-                <div style="background:var(--bg-tertiary);border-radius:8px;padding:14px;margin-bottom:12px;border-right:5px solid #ffc107;">
-                    <strong style="color:#997404;">&#x1F4CA; الخطوة 3 — النتائج والرسم (تاب 3)</strong>
-                    <ul style="padding-right:18px;margin:6px 0 0;">
-                        <li>اضغط "عرض النتائج" ← D10/D30/D60، Cu، Cc، USCS، AASHTO.</li>
-                        <li>أدخل حدود المواصفة (Min/Max Passing) لرسمها على منحنى التدرج.</li>
-                        <li>تحقق من <strong>لوحة QC/QA</strong> — فحوصات المطابقة مع المواصفة تلقائياً.</li>
-                    </ul>
-                </div>
-                <div style="background:var(--bg-tertiary);border-radius:8px;padding:14px;border-right:5px solid #dc3545;">
-                    <strong style="color:#dc3545;">&#x1F4C4; الخطوة 4 — التقرير النهائي (تاب 4)</strong>
-                    <ul style="padding-right:18px;margin:6px 0 0;">
-                        <li>اضغط "تحديث البيانات" ← "&#x1F5A8;&#xFE0F; طباعة / PDF" لحفظ التقرير.</li>
-                        <li>"&#x1F4BE; حفظ النتائج على الجهاز" ← ملف JSON يُحمَّل لاحقاً بزر "تحميل".</li>
-                        <li>"&#x1F512; قفل النتائج" ← يجمّد جميع البيانات ويمنع التعديل.</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- TAB: SINGLE -->
-            <div id="guide-content-single" style="display:none;">
-                <div style="background:#e3f2fd;border-radius:8px;padding:12px;margin-bottom:12px;border-right:5px solid #0d6efd;">
-                    <strong style="color:#0d6efd;">&#x1F535; متى تستخدمها؟ — §10.3.1</strong><br>
-                    الحجم الأقصى <strong>≤ 9.5 mm</strong> مع Method A، أو <strong>≤ 4.75 mm</strong> مع Method B.
-                </div>
-                <div style="display:flex;flex-direction:column;gap:10px;">
-                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #0d6efd;">
-                        <strong style="color:#0d6efd;">1&#xFE0F;&#x20E3; تحضير العينة — §10.5.1</strong>
-                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
-                            <li>خذ عينة ممثلة بالكيل من 5 مواضع مختلفة (Miniature Stockpile Sampling).</li>
-                            <li>جفّفها في الفرن 110±5°C حتى جفاف كامل. سجّل <strong>S,Md</strong> (الكتلة الجافة بالجرام).</li>
-                            <li>تحقق أن S,Md ≥ الحد الأدنى من Table 2 (مثال: Dmax=4.75mm → 75g Method A).</li>
-                        </ul>
-                    </div>
-                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #17a2b8;">
-                        <strong style="color:#17a2b8;">2&#xFE0F;&#x20E3; الغسل على No.200 — §11.4.3</strong>
-                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
-                            <li>أنقع العينة في الماء ≥ 5 دقائق حتى تتفكك التكتلات.</li>
-                            <li>اغسل على منخل No.200 (75µm) حتى يصبح ماء الغسل صافياً تماماً.</li>
-                            <li>أعد المادة المحجوزة إلى الحاوية، جفّفها، سجّل الكتلة الجافة بعد الغسل <strong>SwMd</strong>.</li>
-                        </ul>
-                    </div>
-                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #6f42c1;">
-                        <strong style="color:#6f42c1;">3&#xFE0F;&#x20E3; الغربلة الجافة — §11.4.4</strong>
-                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
-                            <li>رتّب المناخل من الأكبر أعلى حتى No.200 ثم الصينية (Pan) أسفل.</li>
-                            <li>ضع المادة الجافة المغسولة على القمة ← غطِّ المجموعة ← شغّل الهزّاز <strong>10–20 دقيقة</strong> (§8.2).</li>
-                            <li>تحقق من عدم تحميل أي منخل زيادة عن Table 3 (حسب قطر المنخل المختار).</li>
-                        </ul>
-                    </div>
-                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #198754;">
-                        <strong style="color:#198754;">4&#xFE0F;&#x20E3; قياس CMR وإدخاله — §11.4.5</strong>
-                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
-                            <li>ابدأ من أكبر منخل: أضف محتواه إلى الحاوية التراكمية وزِن → <strong>CMR₁</strong>.</li>
-                            <li>أضف محتوى المنخل التالي وزِن → <strong>CMR₂ = CMR₁ + ما على هذا المنخل</strong>.</li>
-                            <li>استمر حتى الصينية. الصينية = SwMd (≈ S,Md إذا كان فقد الغسل ≤ 2%).</li>
-                            <li><strong>في البرنامج:</strong> أدخل CMRₙ لكل منخل ← اضغط "احسب" ← تُحسب كل النسب.</li>
-                        </ul>
-                    </div>
-                    <div style="background:#fff3cd;border-radius:8px;padding:12px;border-right:4px solid #ffc107;">
-                        <strong style="color:#664d03;">5&#xFE0F;&#x20E3; التحقق من فقد الكتلة — §8.5</strong><br>
-                        <span style="font-size:0.88rem;">فقد الكتلة % = (S,Md − SwMd) ÷ S,Md × 100 — يجب أن يكون <strong>≤ 2%</strong> وإلا يُعاد الاختبار.</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB: COMPOSITE SINGLE -->
-            <div id="guide-content-comp1" style="display:none;">
-                <div style="background:#fff8e1;border-radius:8px;padding:12px;margin-bottom:12px;border-right:5px solid #ffc107;">
-                    <strong style="color:#664d03;">&#x1F7E1; متى تستخدمها؟ — §10.3.2</strong><br>
-                    الحجم الأقصى <strong>&gt;9.5 mm</strong> أو حين تكون الكتلة كبيرة للغربلة المفردة. يُستخدم <strong>Method A فقط</strong>.
-                </div>
-                <div style="background:#fff;border-radius:6px;padding:10px;margin-bottom:10px;border:1px solid var(--border-color);text-align:center;font-size:0.88rem;">
-                    العينة تُفصَل عند منخل محدد إلى:<br>
-                    <span style="color:#0d6efd;font-weight:700;">الجزء الخشن (CP)</span> — يُغربَل كاملاً &nbsp;|&nbsp;
-                    <span style="color:#198754;font-weight:700;">الجزء الأدق (FP)</span> — يُؤخذ منه عينة فرعية (SubS)
-                </div>
-                <div style="display:flex;flex-direction:column;gap:10px;">
-                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #6f42c1;">
-                        <strong style="color:#6f42c1;">1&#xFE0F;&#x20E3; اختر منخل الفصل — §10.5.2.2</strong>
-                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
-                            <li>عادةً No.4 (4.75mm) أو ⅜in (9.5mm) — الأكبر أسهل في الفصل.</li>
-                            <li>في البرنامج: من قائمة "Separating Sieve" اختر المنخل.</li>
-                        </ul>
-                    </div>
-                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #0d6efd;">
-                        <strong style="color:#0d6efd;">2&#xFE0F;&#x20E3; الفصل وتحضير CP — §11.5.1</strong>
-                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
-                            <li>مرّر العينة الرطبة الكاملة على منخل الفصل — اجمع CP و FP منفصلَين.</li>
-                            <li>تحقق أن المادة اللاصقة بـCP <strong>≤ 0.5% من S,Md</strong> — إذا تجاوزت اغسل CP وأضف الغسيل لـFP.</li>
-                            <li>اغسل CP وجفّفه — سجّل <strong>CP,Md</strong> (قبل الغسل) و <strong>CPwMd</strong> (بعده).</li>
-                            <li>غربِل CP على المناخل الخشنة — سجّل <strong>CP,CMRₙ</strong>. آخر PP = <strong>CSCF</strong> (بدقة 0.1%).</li>
-                        </ul>
-                    </div>
-                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #198754;">
-                        <strong style="color:#198754;">3&#xFE0F;&#x20E3; الحصول على SubS وغربلتها — §10.5.2.6 + §11.5.2</strong>
-                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
-                            <li>خذ SubS من FP الرطب بالكيل من 5 مواضع — حدّد <strong>wfp</strong> ثم احسب <strong>FP,Md = FP,Mm ÷ (1+wfp/100)</strong>.</li>
-                            <li>كتلة العينة الكلية: <strong>S,Md = CP,Md + FP,Md</strong>.</li>
-                            <li>اغسل SubS على No.200 وجفّفها — سجّل <strong>SubS,Md</strong>.</li>
-                            <li>غربِل SubS على المناخل الدقيقة — سجّل <strong>SubS,FCMRₙ</strong>.</li>
-                            <li>تحقق: المحجوز على أول منخل الدقيق <strong>≤ 2% من SubS,Md</strong>.</li>
-                        </ul>
-                    </div>
-                    <div style="background:#e8f5e9;border-radius:8px;padding:10px;border-right:4px solid #198754;font-size:0.88rem;">
-                        <strong>المعادلة النهائية (§12.5.2.1):</strong><br>
-                        PP للعينة الكلية = <strong>CSCF × (1 − SubS,FCMRₙ / SubS,Md)</strong><br>
-                        <em>البرنامج يحسبها تلقائياً بعد إدخال جميع القيم.</em>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB: COMPOSITE DOUBLE -->
-            <div id="guide-content-comp2" style="display:none;">
-                <div style="background:#fce4ec;border-radius:8px;padding:12px;margin-bottom:12px;border-right:5px solid #dc3545;">
-                    <strong style="color:#b71c1c;">&#x1F534; متى تستخدمها؟ — §11.6</strong><br>
-                    الحجم الأقصى <strong>≥ 19.0 mm (¾ بوصة)</strong> — حيث يكون 1st SubS لا يزال خشناً جداً.
-                </div>
-                <div style="background:#fff;border-radius:6px;padding:10px;margin-bottom:10px;border:1px solid var(--border-color);text-align:center;font-size:0.88rem;">
-                    فصلان ← ثلاثة أجزاء:<br>
-                    <span style="color:#dc3545;font-weight:700;">1st CP</span> (يُغربَل) →
-                    <span style="color:#e67e22;font-weight:700;">1st SubS</span> يُفصَل مجدداً →
-                    <span style="color:#6f42c1;font-weight:700;">2nd CP + 2nd SubS</span>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:10px;">
-                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #dc3545;">
-                        <strong style="color:#dc3545;">1&#xFE0F;&#x20E3; الفصل الأول — نفس خطوات Composite Single §11.5</strong>
-                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
-                            <li>اختر <strong>منخل الفصل الأول</strong> (عادةً ¾in = 19mm أو 1in = 25mm).</li>
-                            <li>فصّل العينة → غربِل 1st CP → احسب <strong>1st CSCF</strong> → خذ <strong>1st SubS</strong> من FP.</li>
-                        </ul>
-                    </div>
-                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #e67e22;">
-                        <strong style="color:#e67e22;">2&#xFE0F;&#x20E3; الفصل الثاني على 1st SubS — §11.6.1</strong>
-                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
-                            <li>اختر <strong>منخل الفصل الثاني</strong> (⅜in/9.5mm أو No.4/4.75mm أو No.10/2mm).</li>
-                            <li>مرّر 1st SubS ← <strong>2nd CP</strong> (محجوز) + <strong>2nd FP</strong> (مار).</li>
-                            <li>تحقق: محجوز على أول منخل 2nd CP <strong>≤ 2% من 1st SubS,Md</strong> (§11.6.3.2).</li>
-                        </ul>
-                    </div>
-                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #6f42c1;">
-                        <strong style="color:#6f42c1;">3&#xFE0F;&#x20E3; غربلة 2nd CP وتحديد 2nd CSCF — §11.6.3</strong>
-                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
-                            <li>اغسل 2nd CP وجفّفه — غربِله على المناخل بين منخلَي الفصل.</li>
-                            <li>احسب <strong>2nd CSCF</strong> = PP عند آخر منخل في 2nd CP.</li>
-                            <li>فقد الغسل ≤ 0.5% من <strong>1st SubS,Md</strong>.</li>
-                        </ul>
-                    </div>
-                    <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;border-right:4px solid #198754;">
-                        <strong style="color:#198754;">4&#xFE0F;&#x20E3; غربلة 2nd SubS ودمج النتائج — §11.6.4 / §12.6</strong>
-                        <ul style="padding-right:16px;margin:5px 0 0;font-size:0.88rem;">
-                            <li>خذ 2nd SubS من 2nd FP بالتقسيم — اغسله على No.200 وجفّفه — غربِله.</li>
-                            <li>PP النهائية = <strong>2nd CSCF × (1 − 2nd SubS,FCMRₙ / 2nd SubS,Md)</strong></li>
-                            <li><strong>في البرنامج:</strong> أدخل بيانات الثلاثة أجزاء (1st CP / 2nd CP / 2nd SubS) ← اضغط "احسب".</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB: NOTES -->
-            <div id="guide-content-notes" style="display:none;">
-                <div style="display:flex;flex-direction:column;gap:12px;">
-                    <div style="background:#fff3cd;border-radius:8px;padding:14px;border-right:5px solid #ffc107;">
-                        <strong style="color:#664d03;">&#x26A0;&#xFE0F; حدود حرجة من المواصفة</strong>
-                        <ul style="padding-right:18px;margin:6px 0 0;font-size:0.88rem;">
-                            <li><strong>فقد الكتلة §8.5:</strong> ≤ 2% — إذا تجاوز يُعاد الاختبار.</li>
-                            <li><strong>تحميل المناخل §11.3 Table 3:</strong> يختلف حسب قطر المنخل — اختر القطر الصحيح في Tab 2.</li>
-                            <li><strong>أول منخل الجزء الأدق §11.5.2.2:</strong> محجوز ≤ 2% من SubS,Md.</li>
-                            <li><strong>CPL §10.5.2.3:</strong> فقد الغسل ≤ 0.5% من S,Md.</li>
-                            <li><strong>الكتلة الدنيا Table 2:</strong> تعتمد على الحجم الأقصى والطريقة.</li>
-                            <li><strong>فترة الهز §8.2:</strong> 10–20 دقيقة — يجب التحقق مسبقاً على كل جهاز.</li>
-                        </ul>
-                    </div>
-                    <div style="background:#e3f2fd;border-radius:8px;padding:14px;border-right:5px solid #0d6efd;">
-                        <strong style="color:#0d3c6e;">&#x1F4CC; قيود المواصفة §1.6</strong>
-                        <ul style="padding-right:18px;margin:6px 0 0;font-size:0.88rem;">
-                            <li>Method B: Single فقط + Dmax ≤ 4.75mm.</li>
-                            <li>Composite: Method A إلزامي.</li>
-                            <li>التقسيم بالمقسّم (Splitter): ≤ 2 عمليات فقط (§10.4.4).</li>
-                            <li>لا يُستخدم للتربة العضوية أو المحتوية على أسفلت أو مواد رابطة (§1.10).</li>
-                        </ul>
-                    </div>
-                    <div style="background:#f3e5f5;border-radius:8px;padding:14px;border-right:5px solid #6f42c1;">
-                        <strong style="color:#4a148c;">&#x1F50D; كيف تقرأ CMR بشكل صحيح؟</strong>
-                        <div style="font-size:0.88rem;margin-top:6px;">
-                            CMR = <strong>الكتلة التراكمية المحجوزة</strong> = مجموع ما على هذا المنخل + جميع المناخل الأكبر.<br><br>
-                            <strong>مثال:</strong> على No.10 = 18g | على No.20 = 25g | على No.40 = 30g<br>
-                            CMR No.10 = 18g | CMR No.20 = 43g | CMR No.40 = 73g<br>
-                            % Passing No.40 = (1 − 73÷500) × 100 = <strong>85.4%</strong> (S,Md = 500g)
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            </div><!-- end scrollable -->
-            <div style="text-align:center;padding:14px;border-top:1px solid var(--border-color);background:var(--bg-tertiary);">
-                <button onclick="document.getElementById('userGuideModal').style.display='none'" class="btn btn-success" style="padding:10px 34px;">&#x2705; أغلق الدليل</button>
-            </div>
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#0a2342 0%,#1565c0 100%);color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:1.25rem;font-weight:800;letter-spacing:.3px;">&#x1F4D6; دليل المستخدم الشامل</div>
+            <div style="font-size:0.8rem;color:rgba(255,255,255,0.75);margin-top:2px;">ASTM D6913/D6913M-17 — إجراء الاختبار + كيفية الاستخدام</div>
+          </div>
+          <button onclick="document.getElementById('userGuideModal').style.display='none'"
+            style="background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:1.4rem;width:36px;height:36px;border-radius:50%;cursor:pointer;line-height:1;">&#xD7;</button>
         </div>
+
+        <!-- Tabs -->
+        <div style="display:flex;flex-wrap:wrap;background:var(--bg-primary);border-bottom:2px solid var(--accent-color);">
+          <button onclick="showGuideTab('use')"    id="gtab-use"    class="gtab gtab-active" >&#x1F4F1; الاستخدام</button>
+          <button onclick="showGuideTab('enter')"  id="gtab-enter"  class="gtab">&#x270F;&#xFE0F; إدخال البيانات</button>
+          <button onclick="showGuideTab('single')" id="gtab-single" class="gtab">&#x1F535; المفرد</button>
+          <button onclick="showGuideTab('comp1')"  id="gtab-comp1"  class="gtab">&#x1F7E1; مركب – فصل 1</button>
+          <button onclick="showGuideTab('comp2')"  id="gtab-comp2"  class="gtab">&#x1F534; مركب – فصل 2</button>
+          <button onclick="showGuideTab('calc')"   id="gtab-calc"   class="gtab">&#x1F9EE; الحسابات</button>
+          <button onclick="showGuideTab('notes')"  id="gtab-notes"  class="gtab">&#x26A0;&#xFE0F; تنبيهات</button>
+        </div>
+
+        <!-- Scrollable body -->
+        <div style="padding:20px;direction:rtl;font-family:'Segoe UI',Tahoma,sans-serif;color:var(--text-primary);line-height:1.8;font-size:0.92rem;max-height:66vh;overflow-y:auto;">
+
+          <!-- ═══ TAB: USE ═══ -->
+          <div id="guide-content-use">
+            <p style="color:var(--text-secondary);margin-bottom:14px;">المنصة مقسمة على 4 تبويبات رئيسية. اتبع الخطوات بالترتيب:</p>
+            <div class="gcard gcol-blue"><div class="gcardtitle">&#x1F4CB; تاب 1 — بيانات المشروع والمعمل</div>
+              <ul class="glist"><li><b>اسم المعمل</b> — بيظهر في رأس التقرير النهائي تلقائياً.</li><li><b>رقم التقرير / الفني / المراجع / المعتمد</b> — بيظهروا في توقيعات التقرير.</li><li><b>معرّفات الأجهزة</b> — Balance / Sieve Shaker / Oven — متطلبات ISO 17025.</li><li><b>بيانات العينة</b> — Sample ID، وصف التربة، تواريخ الاستلام والاختبار.</li><li><b>حدود أتربرج LL و PL</b> — PI بيتحسب لوحده، وبيستخدم في USCS و AASHTO.</li></ul>
+            </div>
+            <div class="gcard gcol-green"><div class="gcardtitle">&#x2697;&#xFE0F; تاب 2 — إدخال بيانات الغربلة</div>
+              <ul class="glist"><li>اختار <b>قطر المناخل</b> (200 / 305 / 370×580 mm) — بيأثر على حدود الحمل الأقصى من Table 3.</li><li>اختار <b>Method A</b> (أقرب 1%) أو <b>Method B</b> (أقرب 0.1% — Single فقط مع Dmax ≤ 4.75mm).</li><li>اختار نوع الغربلة (مفردة / مركبة) حسب الحجم الأقصى للعينة.</li><li>أدخل قيم <b>CMR</b> لكل منخل واضغط "احسب" → النسب بتتحسب أوتوماتيكاً.</li></ul>
+            </div>
+            <div class="gcard gcol-yellow"><div class="gcardtitle">&#x1F4CA; تاب 3 — النتائج والرسم البياني</div>
+              <ul class="glist"><li>اضغط "عرض النتائج" ← D10/D30/D60، Cu، Cc، تصنيفات USCS و AASHTO.</li><li>أدخل حدود المواصفة (Min/Max) لرسمها على منحنى التدرج.</li><li>لوحة <b>QC/QA</b> بتظهر تلقائياً — فحوصات المطابقة مع المواصفة.</li><li>زرار "تصدير CSV" للحفظ في Excel.</li></ul>
+            </div>
+            <div class="gcard gcol-red"><div class="gcardtitle">&#x1F4C4; تاب 4 — التقرير النهائي</div>
+              <ul class="glist"><li>اضغط "تحديث البيانات" ← "&#x1F5A8; طباعة / PDF" لحفظ التقرير.</li><li>"&#x1F4BE; حفظ النتائج على الجهاز" ← ملف JSON تقدر تحمّله تاني بزرار "تحميل".</li><li>"&#x1F512; قفل النتائج" ← يجمّد كل البيانات ويمنع أي تعديل.</li></ul>
+            </div>
+          </div>
+
+          <!-- ═══ TAB: DATA ENTRY ═══ -->
+          <div id="guide-content-enter" style="display:none;">
+            <div class="gcard gcol-blue"><div class="gcardtitle">&#x1F4D0; ازاي تدخل بيانات المنخل المفرد (Single)</div>
+              <ol class="glist" style="list-style:decimal;padding-right:22px;">
+                <li>روح تاب 2، اختار <b>Single Sieve-Set</b>.</li>
+                <li>اكتب <b>الكتلة الجافة للعينة S,Md</b> في حقل "Dry Mass of Specimen".</li>
+                <li>في جدول المناخل: في كل صف، اكتب قيمة <b>CMR</b> (الكتلة التراكمية المحجوزة بالجرام) في عمود "CMR (g)".</li>
+                <li>CMR = مجموع كل المواد المحجوزة على هذا المنخل <b>وكل المناخل الأكبر منه</b>.</li>
+                <li>المناخل اللي مفيش حاجة محجوزة عليها — اتركها صفر أو فاضية.</li>
+                <li>قيمة Pan (الصينية) = SwMd (الكتلة بعد الغسل ≈ S,Md).</li>
+                <li>اضغط <b>"احسب"</b> → MR و%Retained و%Passing بتتحسب أوتوماتيكاً.</li>
+              </ol>
+            </div>
+            <div class="gcard gcol-purple"><div class="gcardtitle">&#x1F4D0; ازاي تدخل بيانات المركب – فصل واحد (Composite Single)</div>
+              <ol class="glist" style="list-style:decimal;padding-right:22px;">
+                <li>اختار <b>Composite — Single Separation</b>.</li>
+                <li>من قائمة "Separating Sieve" اختار منخل الفصل (مثلاً No.4 أو ⅜in).</li>
+                <li><b>جدول الجزء الخشن (Coarser Portion):</b> أدخل CMR لكل منخل من الأكبر حتى منخل الفصل.</li>
+                <li>في حقول الكتل: أدخل <b>CP,Md</b> (كتلة الجزء الخشن الجافة) و <b>FP,Mm</b> (كتلة الجزء الأدق الرطبة) و <b>wfp%</b> (محتوى الماء).</li>
+                <li><b>جدول العينة الفرعية (Subspecimen):</b> أدخل <b>SubS,Md</b> ثم CMR لكل منخل من منخل الفصل حتى No.200.</li>
+                <li>اضغط <b>"احسب"</b> → البرنامج بيدمج النتيجتين أوتوماتيكاً.</li>
+              </ol>
+            </div>
+            <div class="gcard gcol-red"><div class="gcardtitle">&#x1F4D0; ازاي تدخل بيانات المركب – فصلين (Composite Double)</div>
+              <ol class="glist" style="list-style:decimal;padding-right:22px;">
+                <li>اختار <b>Composite — Double Separation</b>.</li>
+                <li>اختار منخل الفصل الأول (1st Sieve) ومنخل الفصل الثاني (2nd Sieve).</li>
+                <li>أدخل بيانات <b>1st Coarser Portion</b>: CMR لكل منخل من الأكبر حتى 1st Sieve.</li>
+                <li>أدخل بيانات <b>2nd Coarser Portion</b>: CMR لكل منخل من 1st Sieve حتى 2nd Sieve.</li>
+                <li>أدخل بيانات <b>2nd Subspecimen</b>: CMR لكل منخل من 2nd Sieve حتى No.200.</li>
+                <li>أدخل الكتل المطلوبة: 1st CP,Md و FP,Mm و wfp و 1st SubS,Md و 2nd SubS,Md.</li>
+                <li>اضغط <b>"احسب"</b> → البرنامج بيحسب كل CSCF ويدمج النتيجة النهائية.</li>
+              </ol>
+            </div>
+            <div class="gcard gcol-green"><div class="gcardtitle">&#x1F4A1; نصايح عملية لإدخال البيانات</div>
+              <ul class="glist"><li>لو منخل مفيش حاجة محجوزة عليه → اتركه فاضي أو اكتب 0.</li><li>قيم CMR لازم تكون <b>تصاعدية</b> من المنخل الأكبر للأصغر (كل واحد ≥ اللي قبله).</li><li>لو لقيت نتيجة غريبة → اتحقق إن CMR مش أكبر من S,Md.</li><li>البرنامج بيحسب لوحده MR لكل منخل = CMR(N) − CMR(N−1).</li><li>الصينية (Pan) لازم تكون آخر قيمة وتساوي تقريباً الكتلة الجافة الكلية بعد الغسل.</li></ul>
+            </div>
+          </div>
+
+          <!-- ═══ TAB: SINGLE ═══ -->
+          <div id="guide-content-single" style="display:none;">
+            <div class="ginfo-box"><b>&#x1F535; امتى بنستخدمها؟ — §10.3.1</b><br>لما الحجم الأقصى للجسيمات يكون <b>≤ 9.5 mm</b> مع Method A، أو <b>≤ 4.75 mm</b> مع Method B.</div>
+            <div class="gstep"><span class="gstep-num">1</span><div><div class="gstep-title">تحضير العينة — §10.5.1</div><ul class="glist"><li>خد عينة ممثلة بالكيل من 5 مواضع مختلفة (Miniature Stockpile Sampling §A2.1.3).</li><li>جفّفها في الفرن 110±5°C لحد ما وزنها يثبت. سجّل الكتلة الجافة <b>S,Md</b> بالجرام.</li><li>اتحقق إن S,Md ≥ الحد الأدنى من Table 2 (مثال: Dmax=4.75mm → 75g Method A).</li></ul></div></div>
+            <div class="gstep"><span class="gstep-num">2</span><div><div class="gstep-title">الغسل على منخل No.200 — §11.4.3</div><ul class="glist"><li>أنقع العينة في ماء نضيف ≥ 5 دقايق لحد ما التكتلات تتفكك.</li><li>اغسل على منخل No.200 (75µm) لحد ما مياه الغسل تبقى صافية تماماً.</li><li>أعد المادة المحجوزة على No.200 إلى الحاوية وجفّفها في الفرن — سجّل الكتلة الجافة بعد الغسل <b>SwMd</b>.</li></ul></div></div>
+            <div class="gstep"><span class="gstep-num">3</span><div><div class="gstep-title">الغربلة الجافة — §11.4.4</div><ul class="glist"><li>رتّب المناخل: الأكبر فوق ← حتى No.200 ← الصينية (Pan) تحت.</li><li>حط المادة الجافة المغسولة على أكبر منخل ← غطي المجموعة ← شغّل الهزّاز <b>10–20 دقيقة</b> (§8.2) — الوقت ده المتحقق منه مسبقاً على جهازك.</li><li>اتحقق إن مفيش منخل محمّل زيادة عن حد Table 3 (حسب قطر المنخل المختار).</li></ul></div></div>
+            <div class="gstep"><span class="gstep-num">4</span><div><div class="gstep-title">قياس CMR وإدخاله في البرنامج — §11.4.5</div><ul class="glist"><li>ابدأ من أكبر منخل: حط محتواه في الحاوية التراكمية → وزّن وسجّل <b>CMR₁</b>.</li><li>أضف محتوى المنخل اللي بعده للحاوية → وزّن وسجّل <b>CMR₂</b>. كمّل بالترتيب لحد الصينية.</li><li>في البرنامج: اكتب قيمة CMR لكل منخل في العمود المخصص → اضغط "احسب".</li></ul></div></div>
+            <div class="gstep"><span class="gstep-num">5</span><div><div class="gstep-title">التحقق من فقد الكتلة — §8.5</div><ul class="glist"><li>أدخل "الكتلة بعد الغربلة" في Tab 2 → البرنامج بيحسب الفقد أوتوماتيكاً.</li><li>فقد الكتلة = (S,Md − SwMd) ÷ S,Md × 100 — لازم يكون <b>≤ 2%</b> وإلا يُعاد الاختبار.</li></ul></div></div>
+          </div>
+
+          <!-- ═══ TAB: COMPOSITE SINGLE ═══ -->
+          <div id="guide-content-comp1" style="display:none;">
+            <div class="ginfo-box"><b>&#x1F7E1; امتى بنستخدمها؟ — §10.3.2</b><br>لما الحجم الأقصى <b>&gt; 9.5 mm</b> أو لما العينة كبيرة ومش عملي تغربلها مرة واحدة. Method A إلزامي.</div>
+            <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;margin-bottom:14px;text-align:center;border:1px solid var(--border-color);">
+              العينة بتتفصل على <b>منخل فصل محدد</b> إلى جزأين:<br>
+              <span style="color:#0d6efd;font-weight:700;">الجزء الخشن (CP)</span> بيتغربل كاملاً &nbsp;|&nbsp;
+              <span style="color:#198754;font-weight:700;">الجزء الأدق (FP)</span> بيتاخد منه عينة فرعية (SubS)
+            </div>
+            <div class="gstep"><span class="gstep-num">1</span><div><div class="gstep-title">اختار منخل الفصل — §10.5.2.2</div><ul class="glist"><li>الشائع: No.4 (4.75mm) أو ⅜in (9.5mm) — الأكبر أسهل في الفصل والأدق أكثر دقة.</li><li>في البرنامج: من قائمة "Separating Sieve" اختار المنخل المناسب.</li></ul></div></div>
+            <div class="gstep"><span class="gstep-num">2</span><div><div class="gstep-title">الفصل وتحضير CP — §11.5.1</div><ul class="glist"><li>مرّر العينة الرطبة الكاملة على منخل الفصل — اجمع CP و FP كل واحد في حاوية منفصلة.</li><li>اتحقق إن المادة اللاصقة بـCP <b>≤ 0.5% من S,Md</b> (CPL §10.5.2.3) — لو زادت اغسل CP وأضف الغسيل لـFP.</li><li>اغسل CP وجفّفه — سجّل <b>CP,Md</b> قبل الغسل و <b>CPwMd</b> بعده.</li><li>غربِل CP على المناخل الخشنة — سجّل <b>CP,CMRₙ</b> لكل منخل. آخر قيمة PP = <b>CSCF</b> (بدقة 0.1%).</li></ul></div></div>
+            <div class="gstep"><span class="gstep-num">3</span><div><div class="gstep-title">خد SubS من FP وغربلها — §10.5.2.6 + §11.5.2</div><ul class="glist"><li>اخلط FP الرطب كويس وخد SubS بالكيل من 5 مواضع — حدّد <b>wfp%</b> (محتوى الماء).</li><li>احسب: <b>FP,Md = FP,Mm ÷ (1 + wfp/100)</b></li><li>احسب الكتلة الكلية: <b>S,Md = CP,Md + FP,Md</b></li><li>اغسل SubS على No.200 وجفّف — سجّل <b>SubS,Md</b>. اتحقق إنها ≥ الحد الأدنى من Table 2.</li><li>غربِل SubS على المناخل الدقيقة — سجّل <b>SubS,FCMRₙ</b> لكل منخل.</li><li>اتحقق: المحجوز على أول منخل الدقيق <b>≤ 2% من SubS,Md</b>.</li></ul></div></div>
+          </div>
+
+          <!-- ═══ TAB: COMPOSITE DOUBLE ═══ -->
+          <div id="guide-content-comp2" style="display:none;">
+            <div class="ginfo-box"><b>&#x1F534; امتى بنستخدمها؟ — §11.6</b><br>لما الحجم الأقصى <b>≥ 19.0 mm (¾ بوصة)</b> — لأن 1st SubS بتفضل خشنة زيادة ومش عملي تغربلها على المناخل الدقيقة مباشرة.</div>
+            <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;margin-bottom:14px;text-align:center;border:1px solid var(--border-color);">
+              فصلين بدل واحد → 3 أجزاء:<br>
+              <span style="color:#dc3545;font-weight:700;">1st CP</span> بيتغربل ←
+              <span style="color:#e67e22;font-weight:700;">1st SubS</span> بيتفصل تاني →
+              <span style="color:#6f42c1;font-weight:700;">2nd CP</span> بيتغربل +
+              <span style="color:#198754;font-weight:700;">2nd SubS</span> بيتغربل
+            </div>
+            <div class="gstep"><span class="gstep-num">1</span><div><div class="gstep-title">الفصل الأول — نفس خطوات الفصل الأحادي</div><ul class="glist"><li>اختار <b>1st Separating Sieve</b> (عادةً ¾in=19mm أو 1in=25mm).</li><li>فصّل العينة → غربِل 1st CP على المناخل الخشنة → احسب <b>1st CSCF</b> → خد <b>1st SubS</b> من FP بالطريقة العادية.</li></ul></div></div>
+            <div class="gstep"><span class="gstep-num">2</span><div><div class="gstep-title">الفصل الثاني على 1st SubS — §11.6.1</div><ul class="glist"><li>اختار <b>2nd Separating Sieve</b> (عادةً ⅜in/9.5mm أو No.4/4.75mm أو No.10/2mm).</li><li>مرّر 1st SubS على 2nd Sieve → <b>2nd CP</b> (محجوز) + <b>2nd FP</b> (مار).</li><li>اتحقق: المحجوز على أول منخل 2nd CP <b>≤ 2% من 1st SubS,Md</b> (§11.6.3.2).</li></ul></div></div>
+            <div class="gstep"><span class="gstep-num">3</span><div><div class="gstep-title">غربلة 2nd CP وتحديد 2nd CSCF — §11.6.3</div><ul class="glist"><li>اغسل 2nd CP وجفّفه — سجّل <b>2nd CP,Md</b> و <b>2nd CPwMd</b>.</li><li>غربِل على المناخل بين 1st Sieve و 2nd Sieve — سجّل <b>2nd CP,CMRₙ</b>.</li><li><b>2nd CSCF</b> = PP عند آخر منخل في 2nd CP (أدقه = 2nd Sieve).</li><li>فقد الغسل ≤ 0.5% من <b>1st SubS,Md</b>.</li></ul></div></div>
+            <div class="gstep"><span class="gstep-num">4</span><div><div class="gstep-title">غربلة 2nd SubS — §11.6.4</div><ul class="glist"><li>خد 2nd SubS من 2nd FP بالتقسيم (Splitter) — اغسله على No.200 وجفّف — سجّل <b>2nd SubS,Md</b>.</li><li>غربِل على المناخل الدقيقة (من 2nd Sieve لـNo.200) — سجّل <b>2nd SubS,FCMRₙ</b>.</li><li>في البرنامج: أدخل كل البيانات للأجزاء الثلاثة ← اضغط "احسب".</li></ul></div></div>
+          </div>
+
+          <!-- ═══ TAB: CALCULATIONS ═══ -->
+          <div id="guide-content-calc" style="display:none;">
+            <p style="color:var(--text-secondary);margin-bottom:14px;">دي شرح المعادلات اللي البرنامج بيحسبها أوتوماتيكاً — بس مفيد تفهمها:</p>
+
+            <div class="gcalc-section"><div class="gcalc-title">&#x1F535; المنخل المفرد — §12.3</div>
+              <div class="gcalc-box">
+                <div class="gcalc-formula">MR<sub>N</sub> = CMR<sub>N</sub> − CMR<sub>N−1</sub></div>
+                <div class="gcalc-explain">الكتلة المحجوزة على كل منخل = الكتلة التراكمية ناقص اللي فات.</div>
+              </div>
+              <div class="gcalc-box">
+                <div class="gcalc-formula">% Retained<sub>N</sub> = (MR<sub>N</sub> ÷ S,Md) × 100</div>
+                <div class="gcalc-explain">النسبة المحجوزة على المنخل = كتلته مقسومة على الكتلة الجافة الكلية × 100.</div>
+              </div>
+              <div class="gcalc-box">
+                <div class="gcalc-formula">% Passing<sub>N</sub> = 100 × (1 − CMR<sub>N</sub> ÷ S,Md)</div>
+                <div class="gcalc-explain">النسبة المارة = 100 ناقص النسبة التراكمية المحجوزة — ودي هي اللي بترسم على المنحنى.</div>
+              </div>
+            </div>
+
+            <div class="gcalc-section"><div class="gcalc-title">&#x1F7E1; المركب – فصل واحد — §12.5</div>
+              <div class="gcalc-box">
+                <div class="gcalc-formula">S,Md = CP,Md + FP,Md &nbsp;&nbsp;&nbsp; حيث FP,Md = FP,Mm ÷ (1 + wfp/100)</div>
+                <div class="gcalc-explain">الكتلة الجافة الكلية للعينة = الجزء الخشن الجاف + الجزء الأدق الجاف. الجزء الأدق الجاف بيتحسب من كتلته الرطبة ومحتوى الماء.</div>
+              </div>
+              <div class="gcalc-box">
+                <div class="gcalc-formula">CP,PP<sub>N</sub> = 100 × (1 − CP,CMR<sub>N</sub> ÷ S,Md)</div>
+                <div class="gcalc-explain">% المار للجزء الخشن: بيتحسب عادي بس بيقسم على الكتلة الكلية S,Md مش على CP,Md.</div>
+              </div>
+              <div class="gcalc-box">
+                <div class="gcalc-formula">CSCF = CP,PP<sub>last</sub> &nbsp;&nbsp; (آخر منخل في الجزء الخشن)</div>
+                <div class="gcalc-explain">عامل التصحيح = % المار عند منخل الفصل في الجزء الخشن. ده بيقولنا: "كام % من العينة الكلية اتمر من منخل الفصل؟".</div>
+              </div>
+              <div class="gcalc-box">
+                <div class="gcalc-formula">SubS,PP<sub>N</sub> = CSCF × (1 − SubS,FCMR<sub>N</sub> ÷ SubS,Md)</div>
+                <div class="gcalc-explain">% المار النهائي للمناخل الدقيقة = CSCF × النسبة المارة الجزئية (fractional) في العينة الفرعية. المضروب في CSCF ده بيرجّع النتيجة للعينة الكلية.</div>
+              </div>
+              <div class="gcalc-box" style="background:var(--bg-tertiary);">
+                <div class="gcalc-formula">CPL = [(CP,Md − CPwMd) + CP,MRpan] ÷ S,Md × 100</div>
+                <div class="gcalc-explain">فقد الجزء الخشن أثناء الغسل والغربلة — لازم يكون <b>≤ 0.5%</b> وإلا الاختبار مش مطابق.</div>
+              </div>
+            </div>
+
+            <div class="gcalc-section"><div class="gcalc-title">&#x1F534; المركب – فصلين — §12.6</div>
+              <div class="gcalc-box">
+                <div class="gcalc-formula">1st CSCF = 1st CP,PP<sub>last</sub></div>
+                <div class="gcalc-explain">عامل التصحيح الأول = % المار عند منخل الفصل الأول في 1st CP.</div>
+              </div>
+              <div class="gcalc-box">
+                <div class="gcalc-formula">2nd CP,PP<sub>N</sub> = 1st CSCF × (1 − 2nd CP,CMR<sub>N</sub> ÷ 1st SubS,Md)</div>
+                <div class="gcalc-explain">% المار للـ2nd CP بيتحسب نسبة للـ1st SubS ثم بيتضرب في 1st CSCF عشان يرجع للعينة الكلية.</div>
+              </div>
+              <div class="gcalc-box">
+                <div class="gcalc-formula">2nd CSCF = 2nd CP,PP<sub>last</sub></div>
+                <div class="gcalc-explain">عامل التصحيح الثاني = % المار عند منخل الفصل الثاني في 2nd CP.</div>
+              </div>
+              <div class="gcalc-box">
+                <div class="gcalc-formula">2nd SubS,PP<sub>N</sub> = 2nd CSCF × (1 − 2nd SubS,FCMR<sub>N</sub> ÷ 2nd SubS,Md)</div>
+                <div class="gcalc-explain">% المار النهائي للمناخل الدقيقة = 2nd CSCF × النسبة الجزئية في 2nd SubS.</div>
+              </div>
+            </div>
+
+            <div class="gcalc-section"><div class="gcalc-title">&#x1F4CF; معاملات التدرج — §5.2</div>
+              <div class="gcalc-box">
+                <div class="gcalc-formula">Cu = D<sub>60</sub> ÷ D<sub>10</sub> &nbsp;&nbsp;&nbsp; (معامل الانتظام)</div>
+                <div class="gcalc-explain">D60 و D10 هي أحجام الجسيمات اللي 60% و 10% من العينة بيعدوا منها. Cu كبير = تدرج واسع.</div>
+              </div>
+              <div class="gcalc-box">
+                <div class="gcalc-formula">Cc = D<sub>30</sub>² ÷ (D<sub>10</sub> × D<sub>60</sub>) &nbsp;&nbsp;&nbsp; (معامل الانحناء)</div>
+                <div class="gcalc-explain">Cc بين 1 و 3 مع Cu ≥ 4 للحصى أو ≥ 6 للرمل = تدرج جيد (Well-graded).</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═══ TAB: NOTES ═══ -->
+          <div id="guide-content-notes" style="display:none;">
+            <div class="gnote-card gnote-yellow">
+              <div class="gnote-title">&#x26A0;&#xFE0F; حدود حرجة من المواصفة — لازم تراعيها</div>
+              <table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:0.88rem;">
+                <tr style="background:rgba(0,0,0,0.08);font-weight:700;"><td style="padding:6px 8px;border-bottom:1px solid rgba(0,0,0,0.1);">الحد</td><td style="padding:6px 8px;border-bottom:1px solid rgba(0,0,0,0.1);">القيمة</td><td style="padding:6px 8px;border-bottom:1px solid rgba(0,0,0,0.1);">المرجع</td></tr>
+                <tr><td style="padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.07);">فقد الكتلة أثناء الغربلة</td><td style="padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.07);font-weight:700;color:#dc3545;">≤ 2%</td><td style="padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.07);">§8.5</td></tr>
+                <tr><td style="padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.07);">فقد غسل الجزء الخشن CPL</td><td style="padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.07);font-weight:700;color:#dc3545;">≤ 0.5%</td><td style="padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.07);">§10.5.2.3</td></tr>
+                <tr><td style="padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.07);">محجوز أول منخل الجزء الأدق</td><td style="padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.07);font-weight:700;color:#dc3545;">≤ 2% من SubS,Md</td><td style="padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.07);">§11.5.2.2</td></tr>
+                <tr><td style="padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.07);">فترة الهز الميكانيكي</td><td style="padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.07);font-weight:700;">10–20 دقيقة</td><td style="padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.07);">§8.2</td></tr>
+                <tr><td style="padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.07);">عمليات التقسيم بالـSplitter</td><td style="padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.07);font-weight:700;">≤ 2 مرات</td><td style="padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.07);">§10.4.4</td></tr>
+                <tr><td style="padding:5px 8px;">الكتلة الدنيا للعينة</td><td style="padding:5px 8px;font-weight:700;">حسب Table 2</td><td style="padding:5px 8px;">§10.2</td></tr>
+              </table>
+            </div>
+            <div class="gnote-card gnote-blue">
+              <div class="gnote-title">&#x1F4CC; قيود المواصفة §1.6</div>
+              <ul class="glist"><li>Method B: Single فقط + Dmax ≤ 4.75mm.</li><li>Composite: Method A إلزامي.</li><li>لا يُستخدم للتربة العضوية أو المحتوية على أسفلت أو مواد رابطة (§1.10).</li><li>CSCF بيتحسب بدقة 0.1% لتقليل أخطاء التقريب (§3.3.3).</li></ul>
+            </div>
+            <div class="gnote-card gnote-purple">
+              <div class="gnote-title">&#x1F50D; ازاي تقرأ CMR صح؟</div>
+              <div style="font-size:0.88rem;margin-top:6px;">
+                <b>مثال:</b> عينة S,Md = 500g<br>
+                على No.10 → 18g &nbsp;|&nbsp; على No.20 → 25g &nbsp;|&nbsp; على No.40 → 30g<br><br>
+                CMR No.10 = <b>18g</b><br>
+                CMR No.20 = 18 + 25 = <b>43g</b><br>
+                CMR No.40 = 43 + 30 = <b>73g</b><br><br>
+                % Passing No.40 = 100 × (1 − 73÷500) = <b>85.4%</b>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- end scrollable body -->
+
+        <!-- Footer -->
+        <div style="text-align:center;padding:12px 16px;border-top:1px solid var(--border-color);background:var(--bg-primary);">
+          <button onclick="document.getElementById('userGuideModal').style.display='none'" class="btn btn-success" style="padding:9px 32px;">&#x2705; أغلق الدليل</button>
+        </div>
+      </div>
     </div>
 
-        <!-- Auto-save indicator -->
+    <!-- Auto-save indicator -->
     <div class="save-indicator" id="saveIndicator">💾 تم الحفظ | Saved</div>
 
     <script>
@@ -2357,15 +2383,13 @@
         let resultsLocked = false;
 
         // ── User Guide tab switching ──────────────────────────────────
+        /* ── User Guide CSS ── */
         function showGuideTab(name) {
-            ['use','single','comp1','comp2','notes'].forEach(t => {
-                const content = document.getElementById('guide-content-' + t);
-                const btn     = document.getElementById('gtab-' + t);
-                if (content) content.style.display = (t === name) ? 'block' : 'none';
-                if (btn) {
-                    btn.style.background = (t === name) ? '#0d6efd' : 'var(--bg-tertiary)';
-                    btn.style.color      = (t === name) ? '#fff'    : 'var(--text-primary)';
-                }
+            ['use','enter','single','comp1','comp2','calc','notes'].forEach(t => {
+                const c = document.getElementById('guide-content-' + t);
+                const b = document.getElementById('gtab-' + t);
+                if (c) c.style.display = (t === name) ? 'block' : 'none';
+                if (b) { b.classList.toggle('gtab-active', t === name); }
             });
         }
 
