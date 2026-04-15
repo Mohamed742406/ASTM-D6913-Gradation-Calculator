@@ -1476,6 +1476,43 @@
                 </div>
             </div>
 
+            <!-- ══════════════ SIEVE MANAGER ══════════════ -->
+            <div class="card" id="sieveManagerCard">
+                <div class="card-header">
+                    ⚙️ إدارة المناخل | Sieve Manager
+                    <span style="font-size:0.8rem;font-weight:400;color:var(--text-secondary);">أضف / احذف / أخفِ مناخل — تطبّق على جميع الأوضاع</span>
+                </div>
+                <div class="alert alert-info" style="margin-bottom:14px;padding:10px 14px;font-size:0.88rem;">
+                    🔧 أي تغيير هنا يُعيد بناء جميع جداول المناخل تلقائياً. قيم الكتل المُدخلة محفوظة.
+                </div>
+                <div class="table-container" style="max-height:320px;overflow-y:auto;">
+                    <table style="font-size:0.9rem;">
+                        <thead>
+                            <tr>
+                                <th style="width:50px;">Use</th>
+                                <th>الاسم / Name</th>
+                                <th>الفتحة (mm) / Opening</th>
+                                <th style="width:60px;">حذف</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sieveManagerTbody"></tbody>
+                    </table>
+                </div>
+                <!-- Add new sieve row -->
+                <div style="display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap;">
+                    <input type="text"   id="newSieveName"    placeholder="اسم المنخل — e.g. No. 8"
+                        style="padding:8px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-primary);color:var(--text-primary);min-width:160px;">
+                    <input type="number" id="newSieveOpening" placeholder="فتحة (mm) — e.g. 2.36" step="0.001" min="0"
+                        style="padding:8px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-primary);color:var(--text-primary);width:160px;">
+                    <button class="btn btn-success" onclick="addSieve()" style="padding:8px 18px;">
+                        ➕ إضافة منخل | Add Sieve
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetSievesToDefault()" style="padding:8px 18px;font-size:0.85rem;">
+                        ↩ استعادة الافتراضي | Reset to Default
+                    </button>
+                </div>
+            </div>
+
             <!-- Single Sieve-Set Section -->
             <div id="singleSieveSection" style="display: block;">
                 <div class="card">
@@ -2596,24 +2633,27 @@
                 : '';
         }
 
-        // Standard sieves
-        const standardSieves = [
-            { name: '3 in', opening: 75.0, use: true },
-            { name: '2 in', opening: 50.0, use: true },
-            { name: '1.5 in', opening: 37.5, use: true },
-            { name: '1 in', opening: 25.0, use: true },
-            { name: '3/4 in', opening: 19.0, use: true },
-            { name: '3/8 in', opening: 9.5, use: true },
-            { name: 'No. 4', opening: 4.75, use: true },
-            { name: 'No. 10', opening: 2.00, use: true },
-            { name: 'No. 20', opening: 0.850, use: true },
-            { name: 'No. 40', opening: 0.425, use: true },
-            { name: 'No. 60', opening: 0.250, use: true },
-            { name: 'No. 100', opening: 0.150, use: true },
-            { name: 'No. 140', opening: 0.106, use: true },
-            { name: 'No. 200', opening: 0.075, use: true },
-            { name: 'Pan', opening: 0.000, use: true }
+        // ── Standard sieves — MUTABLE state (add/remove/hide supported) ──
+        let standardSieves = [
+            { name: '3 in',    opening: 75.000, use: true },
+            { name: '2 in',    opening: 50.000, use: true },
+            { name: '1.5 in',  opening: 37.500, use: true },
+            { name: '1 in',    opening: 25.000, use: true },
+            { name: '3/4 in',  opening: 19.000, use: true },
+            { name: '3/8 in',  opening:  9.500, use: true },
+            { name: 'No. 4',   opening:  4.750, use: true },
+            { name: 'No. 10',  opening:  2.000, use: true },
+            { name: 'No. 20',  opening:  0.850, use: true },
+            { name: 'No. 40',  opening:  0.425, use: true },
+            { name: 'No. 60',  opening:  0.250, use: true },
+            { name: 'No. 100', opening:  0.150, use: true },
+            { name: 'No. 140', opening:  0.106, use: true },
+            { name: 'No. 200', opening:  0.075, use: true },
+            { name: 'Pan',     opening:  0.000, use: true }
         ];
+
+        // ── Value caches keyed by opening (mm) — preserved across table rebuilds ──
+        const _singleCmrCache = {};
 
         // Initialize application
         document.addEventListener('DOMContentLoaded', function() {
@@ -2705,22 +2745,47 @@
         const _finerFcmrCache  = {};
 
         function initializeSieveTables() {
+            renderSieveManager();
             populateSieveTable('single', 'singleSieveTableBody');
             refreshCompositeTables();
         }
 
         function populateSieveTable(tableType, tbodyId) {
             const tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+
+            // Save existing input values to cache before clearing
+            tbody.querySelectorAll('tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (!cells.length) return;
+                const op  = parseFloat(cells[2] ? cells[2].textContent : '0');
+                const inp = cells[3] ? cells[3].querySelector('input[type="number"]') : null;
+                const chk = cells[0] ? cells[0].querySelector('input[type="checkbox"]') : null;
+                if (inp && inp.value !== '') _singleCmrCache[op] = inp.value;
+                // Sync 'use' state back to the sieve object
+                if (chk) {
+                    const sv = standardSieves.find(s => Math.abs(s.opening - op) < 0.0001);
+                    if (sv) sv.use = chk.checked;
+                }
+            });
+
             tbody.innerHTML = '';
-            if (tableType !== 'single') return; // composite handled by refreshCompositeTables
+            if (tableType !== 'single') return;
 
             standardSieves.forEach((sieve, index) => {
+                const cachedVal = _singleCmrCache[sieve.opening] !== undefined
+                    ? _singleCmrCache[sieve.opening] : '';
                 const row = document.createElement('tr');
+                if (!sieve.use) row.style.opacity = '0.45';
                 row.innerHTML = `
-                    <td><input type="checkbox" ${sieve.use ? 'checked' : ''} onchange="autoSave()"></td>
+                    <td><input type="checkbox" ${sieve.use ? 'checked' : ''}
+                        onchange="onSingleUseChange(this, ${index})"></td>
                     <td>${sieve.name}</td>
                     <td>${sieve.opening.toFixed(3)}</td>
-                    <td><input type="number" step="0.01" placeholder="0.00" id="single_cmr_${index}" onchange="calculateSingle()"></td>
+                    <td><input type="number" step="0.01" placeholder="0.00"
+                        id="single_cmr_${index}" value="${cachedVal}"
+                        ${!sieve.use ? 'disabled' : ''}
+                        oninput="autoSave()"></td>
                     <td id="single_mr_${index}">-</td>
                     <td id="single_cpr_${index}">-</td>
                     <td id="single_pr_${index}">-</td>
@@ -2728,6 +2793,169 @@
                 `;
                 tbody.appendChild(row);
             });
+        }
+
+        function onSingleUseChange(chk, index) {
+            if (index >= 0 && index < standardSieves.length) {
+                standardSieves[index].use = chk.checked;
+                const row = chk.closest('tr');
+                if (row) {
+                    row.style.opacity = chk.checked ? '' : '0.45';
+                    const inp = row.querySelector('input[type="number"]');
+                    if (inp) inp.disabled = !chk.checked;
+                }
+                renderSieveManager();
+            }
+            autoSave();
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // SIEVE MANAGER — add / remove / hide sieves dynamically
+        // ══════════════════════════════════════════════════════════════
+        function renderSieveManager() {
+            const tbody = document.getElementById('sieveManagerTbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            standardSieves.forEach((s, i) => {
+                const tr = document.createElement('tr');
+                if (!s.use) tr.style.background = 'rgba(108,117,125,0.1)';
+                tr.innerHTML = `
+                    <td style="text-align:center;">
+                        <input type="checkbox" ${s.use ? 'checked' : ''}
+                            title="تفعيل/إخفاء | Use/Hide"
+                            onchange="toggleSieveUse(${i}, this.checked)">
+                    </td>
+                    <td><input type="text" value="${s.name}" style="width:90px;padding:4px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);font-size:0.88rem;"
+                        onchange="renameSieve(${i}, this.value)"></td>
+                    <td><input type="number" step="0.001" min="0" value="${s.opening.toFixed(3)}"
+                        style="width:90px;padding:4px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);font-size:0.88rem;"
+                        onchange="updateSieveOpening(${i}, this.value)"></td>
+                    <td style="text-align:center;">
+                        ${s.name === 'Pan' ? '<span style="color:var(--text-secondary);font-size:0.8rem;">—</span>'
+                            : `<button onclick="removeSieve(${i})" title="حذف هذا المنخل" style="background:var(--danger);color:#fff;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:0.85rem;">🗑</button>`}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function toggleSieveUse(index, checked) {
+            if (index < 0 || index >= standardSieves.length) return;
+            standardSieves[index].use = checked;
+            rebuildAllTables();
+        }
+
+        function renameSieve(index, newName) {
+            if (index < 0 || index >= standardSieves.length) return;
+            standardSieves[index].name = newName.trim() || standardSieves[index].name;
+            rebuildAllTables();
+        }
+
+        function updateSieveOpening(index, newVal) {
+            const op = parseFloat(newVal);
+            if (isNaN(op) || op < 0) return;
+            if (index < 0 || index >= standardSieves.length) return;
+            const oldOp = standardSieves[index].opening;
+            // Move cached value to new key
+            if (_singleCmrCache[oldOp] !== undefined) {
+                _singleCmrCache[op] = _singleCmrCache[oldOp];
+                delete _singleCmrCache[oldOp];
+            }
+            if (_coarserCmrCache[oldOp] !== undefined) {
+                _coarserCmrCache[op] = _coarserCmrCache[oldOp];
+                delete _coarserCmrCache[oldOp];
+            }
+            if (_finerFcmrCache[oldOp] !== undefined) {
+                _finerFcmrCache[op] = _finerFcmrCache[oldOp];
+                delete _finerFcmrCache[oldOp];
+            }
+            standardSieves[index].opening = op;
+            // Re-sort descending
+            standardSieves.sort((a, b) => b.opening - a.opening);
+            rebuildAllTables();
+        }
+
+        function removeSieve(index) {
+            if (index < 0 || index >= standardSieves.length) return;
+            const sieve = standardSieves[index];
+            if (sieve.name === 'Pan') { alert('لا يمكن حذف منخل الـ Pan.'); return; }
+            if (!confirm(`حذف المنخل "${sieve.name}" (${sieve.opening.toFixed(3)} mm)؟`)) return;
+            // Clear from caches
+            delete _singleCmrCache[sieve.opening];
+            delete _coarserCmrCache[sieve.opening];
+            delete _finerFcmrCache[sieve.opening];
+            delete _double1stCmrCache[sieve.opening];
+            delete _double2ndCpCache[sieve.opening];
+            delete _double2ndSubsCache[sieve.opening];
+            standardSieves.splice(index, 1);
+            rebuildAllTables();
+        }
+
+        function addSieve() {
+            const nameEl    = document.getElementById('newSieveName');
+            const openingEl = document.getElementById('newSieveOpening');
+            const name      = nameEl.value.trim();
+            const opening   = parseFloat(openingEl.value);
+            if (!name) { alert('أدخل اسم المنخل.'); return; }
+            if (isNaN(opening) || opening < 0) { alert('أدخل فتحة منخل صحيحة (mm).'); return; }
+            if (standardSieves.some(s => Math.abs(s.opening - opening) < 0.0001)) {
+                alert(`منخل بفتحة ${opening} mm موجود بالفعل.`); return;
+            }
+            standardSieves.push({ name, opening, use: true });
+            standardSieves.sort((a, b) => b.opening - a.opening);
+            nameEl.value = '';
+            openingEl.value = '';
+            rebuildAllTables();
+        }
+
+        function rebuildAllTables() {
+            // Save single-table values first
+            document.querySelectorAll('#singleSieveTableBody tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (!cells.length) return;
+                const op  = parseFloat(cells[2] ? cells[2].textContent : '0');
+                const inp = cells[3] ? cells[3].querySelector('input[type="number"]') : null;
+                const chk = cells[0] ? cells[0].querySelector('input[type="checkbox"]') : null;
+                if (inp && inp.value !== '') _singleCmrCache[op] = inp.value;
+                if (chk) {
+                    const sv = standardSieves.find(s => Math.abs(s.opening - op) < 0.0001);
+                    if (sv) sv.use = chk.checked;
+                }
+            });
+            populateSieveTable('single', 'singleSieveTableBody');
+            refreshCompositeTables();
+            refreshDoubleTables();
+            renderSieveManager();
+            initSpecLimitsTable();
+            autoSave();
+        }
+
+        function resetSievesToDefault() {
+            if (!confirm('استعادة قائمة المناخل الافتراضية؟ سيتم مسح البيانات المُدخلة.')) return;
+            // Clear caches
+            [_singleCmrCache, _coarserCmrCache, _finerFcmrCache,
+             _double1stCmrCache, _double2ndCpCache, _double2ndSubsCache].forEach(c => {
+                Object.keys(c).forEach(k => delete c[k]);
+            });
+            standardSieves.length = 0;
+            [
+                { name: '3 in',    opening: 75.000, use: true },
+                { name: '2 in',    opening: 50.000, use: true },
+                { name: '1.5 in',  opening: 37.500, use: true },
+                { name: '1 in',    opening: 25.000, use: true },
+                { name: '3/4 in',  opening: 19.000, use: true },
+                { name: '3/8 in',  opening:  9.500, use: true },
+                { name: 'No. 4',   opening:  4.750, use: true },
+                { name: 'No. 10',  opening:  2.000, use: true },
+                { name: 'No. 20',  opening:  0.850, use: true },
+                { name: 'No. 40',  opening:  0.425, use: true },
+                { name: 'No. 60',  opening:  0.250, use: true },
+                { name: 'No. 100', opening:  0.150, use: true },
+                { name: 'No. 140', opening:  0.106, use: true },
+                { name: 'No. 200', opening:  0.075, use: true },
+                { name: 'Pan',     opening:  0.000, use: true }
+            ].forEach(s => standardSieves.push(s));
+            rebuildAllTables();
         }
 
         // NEW: refreshCompositeTables — rebuilds coarser + finer tables based on selected separating sieve
@@ -2754,7 +2982,7 @@
             const coarserBody = document.getElementById('compCoarserTableBody');
             coarserBody.innerHTML = '';
             standardSieves.forEach((sieve, index) => {
-                if (sieve.opening >= sepVal || sieve.name === 'Pan') {
+                if ((sieve.opening >= sepVal || sieve.name === 'Pan') && sieve.use) {
                     const row = document.createElement('tr');
                     const cachedVal = _coarserCmrCache[sieve.opening] !== undefined ? _coarserCmrCache[sieve.opening] : '';
                     row.innerHTML = `
@@ -2776,7 +3004,7 @@
             const finerBody = document.getElementById('compFinerTableBody');
             finerBody.innerHTML = '';
             standardSieves.forEach((sieve, index) => {
-                if (sieve.opening <= sepVal) {
+                if (sieve.opening <= sepVal && sieve.use) {
                     const row = document.createElement('tr');
                     const cachedVal = _finerFcmrCache[sieve.opening] !== undefined ? _finerFcmrCache[sieve.opening] : '';
                     row.innerHTML = `
@@ -2921,8 +3149,9 @@
             standardSieves.forEach((sieve, index) => {
                 const cmrInput = document.getElementById(`single_cmr_${index}`);
                 if (!cmrInput) return;
+                if (!sieve.use) return; // skip disabled sieves
 
-                // Include ALL rows that exist in the table — even if cmr = 0
+                // Include ALL active rows — even if cmr = 0
                 const cmr = parseFloat(cmrInput.value) || 0;
                 const mr  = cmr - previousCMR;
                 const cpr = (cmr / specimenMass) * 100;
@@ -3299,10 +3528,10 @@
             const sep1 = parseFloat(document.getElementById('compDouble1stSieve').value) || 19.0;
             const sep2 = parseFloat(document.getElementById('compDouble2ndSieve').value) || 4.75;
 
-            // 1st Coarser Portion: sieves >= sep1 (+ Pan)
+            // 1st Coarser Portion: sieves >= sep1 (+ Pan) — only active (use=true)
             tbody1stCoarser.innerHTML = '';
             standardSieves.forEach((sieve, index) => {
-                if (sieve.opening >= sep1 || sieve.name === 'Pan') {
+                if ((sieve.opening >= sep1 || sieve.name === 'Pan') && sieve.use) {
                     const row = tbody1stCoarser.insertRow();
                     const v = _double1stCmrCache[sieve.opening] !== undefined ? _double1stCmrCache[sieve.opening] : '';
                     row.innerHTML = `
@@ -3318,10 +3547,10 @@
                 }
             });
 
-            // 2nd Coarser Portion: sieves between sep2 and sep1 (inclusive on both ends)
+            // 2nd Coarser Portion: sieves between sep2 and sep1 — only active
             tbody2ndCoarser.innerHTML = '';
             standardSieves.forEach((sieve, index) => {
-                if (sieve.opening >= sep2 && sieve.opening <= sep1) {
+                if (sieve.opening >= sep2 && sieve.opening <= sep1 && sieve.use) {
                     const row = tbody2ndCoarser.insertRow();
                     const v = _double2ndCpCache[sieve.opening] !== undefined ? _double2ndCpCache[sieve.opening] : '';
                     row.innerHTML = `
@@ -3336,10 +3565,10 @@
                 }
             });
 
-            // 2nd Subspecimen: sieves <= sep2 (including Pan)
+            // 2nd Subspecimen: sieves <= sep2 — only active
             tbody2ndSubS.innerHTML = '';
             standardSieves.forEach((sieve, index) => {
-                if (sieve.opening <= sep2) {
+                if (sieve.opening <= sep2 && sieve.use) {
                     const row = tbody2ndSubS.insertRow();
                     const v = _double2ndSubsCache[sieve.opening] !== undefined ? _double2ndSubsCache[sieve.opening] : '';
                     row.innerHTML = `
@@ -4705,10 +4934,19 @@
         // Save to localStorage
         function saveToLocalStorage() {
             const data = {
-                version: '2.0',
+                version: '3.0',
                 testMode: currentTestMode,
                 formData: {},
-                finalResults: finalResults
+                finalResults: finalResults,
+                standardSieves: standardSieves,
+                caches: {
+                    single:    _singleCmrCache,
+                    coarser:   _coarserCmrCache,
+                    finer:     _finerFcmrCache,
+                    dbl1st:    _double1stCmrCache,
+                    dbl2ndCp:  _double2ndCpCache,
+                    dbl2ndSub: _double2ndSubsCache
+                }
             };
 
             // Save all form inputs
@@ -4734,13 +4972,29 @@
                 const data = JSON.parse(saved);
 
                 // Version guard — clear stale data from older versions
-                if (!data.version || data.version < '2.0') {
+                if (!data.version || data.version < '3.0') {
                     localStorage.removeItem('astmD6913Data');
                     return;
                 }
 
                 currentTestMode = data.testMode || 'single';
-                finalResults = data.finalResults || [];
+                finalResults    = data.finalResults || [];
+
+                // Restore sieve configuration
+                if (data.standardSieves && Array.isArray(data.standardSieves) && data.standardSieves.length > 0) {
+                    standardSieves.length = 0;
+                    data.standardSieves.forEach(s => standardSieves.push(s));
+                }
+
+                // Restore caches
+                if (data.caches) {
+                    Object.assign(_singleCmrCache,   data.caches.single    || {});
+                    Object.assign(_coarserCmrCache,   data.caches.coarser   || {});
+                    Object.assign(_finerFcmrCache,    data.caches.finer     || {});
+                    Object.assign(_double1stCmrCache, data.caches.dbl1st    || {});
+                    Object.assign(_double2ndCpCache,  data.caches.dbl2ndCp  || {});
+                    Object.assign(_double2ndSubsCache,data.caches.dbl2ndSub || {});
+                }
 
                 if (data.formData) {
                     Object.keys(data.formData).forEach(id => {
@@ -4752,6 +5006,7 @@
                     });
                 }
 
+                rebuildAllTables();
                 selectTestMode(currentTestMode);
 
             } catch (e) {
@@ -4766,7 +5021,16 @@
                 testMode: currentTestMode,
                 formData: {},
                 finalResults: finalResults,
-                version: '1.0',
+                standardSieves: standardSieves,
+                caches: {
+                    single:    _singleCmrCache,
+                    coarser:   _coarserCmrCache,
+                    finer:     _finerFcmrCache,
+                    dbl1st:    _double1stCmrCache,
+                    dbl2ndCp:  _double2ndCpCache,
+                    dbl2ndSub: _double2ndSubsCache
+                },
+                version: '3.0',
                 savedAt: new Date().toISOString()
             };
 
@@ -4803,19 +5067,31 @@
                     const data = JSON.parse(e.target.result);
                     
                     currentTestMode = data.testMode || 'single';
-                    finalResults = data.finalResults || [];
+                    finalResults    = data.finalResults || [];
 
-                    Object.keys(data.formData).forEach(id => {
+                    // Restore sieve configuration
+                    if (data.standardSieves && Array.isArray(data.standardSieves) && data.standardSieves.length > 0) {
+                        standardSieves.length = 0;
+                        data.standardSieves.forEach(s => standardSieves.push(s));
+                    }
+                    if (data.caches) {
+                        Object.assign(_singleCmrCache,    data.caches.single    || {});
+                        Object.assign(_coarserCmrCache,   data.caches.coarser   || {});
+                        Object.assign(_finerFcmrCache,    data.caches.finer     || {});
+                        Object.assign(_double1stCmrCache, data.caches.dbl1st    || {});
+                        Object.assign(_double2ndCpCache,  data.caches.dbl2ndCp  || {});
+                        Object.assign(_double2ndSubsCache,data.caches.dbl2ndSub || {});
+                    }
+
+                    Object.keys(data.formData || {}).forEach(id => {
                         const input = document.getElementById(id);
                         if (input) {
-                            if (input.type === 'checkbox') {
-                                input.checked = data.formData[id];
-                            } else {
-                                input.value = data.formData[id];
-                            }
+                            if (input.type === 'checkbox') input.checked = data.formData[id];
+                            else input.value = data.formData[id];
                         }
                     });
 
+                    rebuildAllTables();
                     selectTestMode(currentTestMode);
                     autoSave();
 
@@ -4893,27 +5169,33 @@
             document.getElementById('singleSpecimenMass').value = '500.00';
 
             // ── Sieve Data — realistic well-graded silty sand ───────
-            // CMR values for a SW-SM soil with nice S-curve
-            // Sieves: 3in(0) 2in(1) 1.5in(2) 1in(3) 3/4in(4) 3/8in(5) No4(6)
-            //         No10(7) No20(8) No40(9) No60(10) No100(11) No140(12) No200(13) Pan(14)
-            const singleCMR = {
-                6:  18.5,   // No. 4    — 3.7% retained → 96.3% passing
-                7:  53.0,   // No. 10   — 6.9% retained → 89.4% passing
-                8: 112.0,   // No. 20   — 11.8% retained → 77.6% passing
-                9: 198.5,   // No. 40   — 17.3% retained → 60.3% passing
-               10: 298.0,   // No. 60   — 19.9% retained → 40.4% passing
-               11: 378.0,   // No. 100  — 16.0% retained → 24.4% passing
-               12: 420.0,   // No. 140  — 8.4% retained  → 16.0% passing
-               13: 458.0,   // No. 200  — 7.6% retained  → 8.4%  passing
-               14: 500.0    // Pan      — 8.4%
+            // CMR values keyed by opening in mm
+            const singleCMRbyOpening = {
+                4.750: 18.5,    // No. 4
+                2.000: 53.0,    // No. 10
+                0.850: 112.0,   // No. 20
+                0.425: 198.5,   // No. 40
+                0.250: 298.0,   // No. 60
+                0.150: 378.0,   // No. 100
+                0.106: 420.0,   // No. 140
+                0.075: 458.0,   // No. 200
+                0.000: 500.0    // Pan
             };
 
             // Select single mode first
             selectTestMode('single');
 
-            Object.keys(singleCMR).forEach(idx => {
-                const input = document.getElementById(`single_cmr_${idx}`);
-                if (input) input.value = singleCMR[idx];
+            // Clear and set cached values, then rebuild table
+            Object.keys(_singleCmrCache).forEach(k => delete _singleCmrCache[k]);
+            Object.assign(_singleCmrCache, singleCMRbyOpening);
+
+            // Populate inputs that currently exist in the DOM
+            standardSieves.forEach((sieve, index) => {
+                const v = singleCMRbyOpening[sieve.opening];
+                if (v !== undefined) {
+                    const input = document.getElementById(`single_cmr_${index}`);
+                    if (input) input.value = v;
+                }
             });
 
             // Auto-calculate after DOM settles, then switch to Results tab, then Report
