@@ -913,18 +913,29 @@
         </div>
 
         <!-- Tabs -->
-        <div class="tabs no-print">
-            <button class="tab-button active" onclick="switchTab('tab1')">
-                📋 بيانات المشروع والبيئة | Project & Environmental Data
+        <div class="tabs no-print" style="display:flex;gap:0;background:var(--bg-secondary);border-radius:12px;padding:6px;box-shadow:var(--shadow);border:1px solid var(--border-subtle);margin-bottom:14px;overflow:hidden;">
+            <button class="tab-button active" onclick="switchTab('tab1')" style="flex:1;border-radius:8px;border:none;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:0.78rem;line-height:1.3;">
+                <span style="font-size:1.3rem;">📋</span>
+                <span style="font-weight:700;">بيانات المشروع</span>
+                <span style="font-size:0.68rem;opacity:0.75;">Project Data</span>
             </button>
-            <button class="tab-button" onclick="switchTab('tab2')">
-                🔬 تحليل المناخل والحسابات | Sieve Analysis & Calculations
+            <div style="width:1px;background:var(--border-subtle);margin:6px 0;"></div>
+            <button class="tab-button" onclick="switchTab('tab2')" style="flex:1;border-radius:8px;border:none;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:0.78rem;line-height:1.3;">
+                <span style="font-size:1.3rem;">🔬</span>
+                <span style="font-weight:700;">تحليل المناخل</span>
+                <span style="font-size:0.68rem;opacity:0.75;">Sieve Analysis</span>
             </button>
-            <button class="tab-button" onclick="switchTab('tab3')">
-                📊 النتائج ومنحنى التدرج | Results & Gradation Curve
+            <div style="width:1px;background:var(--border-subtle);margin:6px 0;"></div>
+            <button class="tab-button" onclick="switchTab('tab3')" style="flex:1;border-radius:8px;border:none;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:0.78rem;line-height:1.3;">
+                <span style="font-size:1.3rem;">📊</span>
+                <span style="font-weight:700;">النتائج والمنحنى</span>
+                <span style="font-size:0.68rem;opacity:0.75;">Results & Curve</span>
             </button>
-            <button class="tab-button" onclick="switchTab('tab4')">
-                📄 التقرير النهائي | Final Report
+            <div style="width:1px;background:var(--border-subtle);margin:6px 0;"></div>
+            <button class="tab-button" onclick="switchTab('tab4')" style="flex:1;border-radius:8px;border:none;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:0.78rem;line-height:1.3;">
+                <span style="font-size:1.3rem;">📄</span>
+                <span style="font-weight:700;">التقرير النهائي</span>
+                <span style="font-size:0.68rem;opacity:0.75;">Final Report</span>
             </button>
         </div>
 
@@ -1157,23 +1168,38 @@
                 <div class="card-header">
                     📐 حدود أتربرج (للتصنيف) | Atterberg Limits (for Classification)
                 </div>
-                <div class="alert alert-info">
-                    ℹ️ أدخل حدود أتربرج إذا كانت متاحة لحساب التصنيف الكامل وفقاً لـ USCS و AASHTO<br>
-                    Enter Atterberg limits if available for complete classification according to USCS & AASHTO
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap;">
+                    <span style="font-weight:600;font-size:0.9rem;">هل تم تحديد حدود أتربرج؟ | Atterberg Limits Available?</span>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:500;">
+                        <input type="radio" name="atterbergAvailable" value="no" checked onchange="toggleAtterberg(false)" style="accent-color:var(--accent-color);">
+                        لا — Non-Plastic (NP)
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:500;">
+                        <input type="radio" name="atterbergAvailable" value="yes" onchange="toggleAtterberg(true)" style="accent-color:var(--accent-color);">
+                        نعم — أدخل القيم
+                    </label>
                 </div>
-                <div class="limits-input-grid">
-                    <div class="form-group">
-                        <label>حد السيولة LL (%) | Liquid Limit</label>
-                        <input type="number" step="0.1" id="liquidLimit" onchange="autoSave()">
+                <div id="atterbergFields" style="display:none;">
+                    <div class="alert alert-info" style="margin-bottom:12px;padding:8px 12px;font-size:0.85rem;">
+                        ℹ️ أدخل حدود أتربرج لحساب التصنيف الكامل وفقاً لـ USCS و AASHTO
                     </div>
-                    <div class="form-group">
-                        <label>حد اللدونة PL (%) | Plastic Limit</label>
-                        <input type="number" step="0.1" id="plasticLimit" onchange="autoSave()">
+                    <div class="limits-input-grid">
+                        <div class="form-group">
+                            <label>حد السيولة LL (%) | Liquid Limit</label>
+                            <input type="number" step="0.1" id="liquidLimit" onchange="autoSave(); calculatePI()">
+                        </div>
+                        <div class="form-group">
+                            <label>حد اللدونة PL (%) | Plastic Limit</label>
+                            <input type="number" step="0.1" id="plasticLimit" onchange="autoSave(); calculatePI()">
+                        </div>
+                        <div class="form-group">
+                            <label>معامل اللدونة PI (%) | Plasticity Index</label>
+                            <input type="number" step="0.1" id="plasticityIndex" readonly style="background: var(--bg-tertiary);">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>معامل اللدونة PI (%) | Plasticity Index</label>
-                        <input type="number" step="0.1" id="plasticityIndex" readonly style="background: var(--bg-tertiary);">
-                    </div>
+                </div>
+                <div id="atterbergNP" style="color:var(--text-secondary);font-size:0.88rem;padding:4px 0;">
+                    ✔ Non-Plastic — لن يؤثر على التصنيف USCS/AASHTO
                 </div>
             </div>
         </div>
@@ -1240,39 +1266,32 @@
             </div>
 
             <!-- ══════════════ SIEVE MANAGER ══════════════ -->
-            <div class="card" id="sieveManagerCard">
-                <div class="card-header">
-                    ⚙️ إدارة المناخل | Sieve Manager
-                    <span style="font-size:0.8rem;font-weight:400;color:var(--text-secondary);">أضف / احذف / أخفِ مناخل — تطبّق على جميع الأوضاع</span>
+            <div class="card" id="sieveManagerCard" style="padding:16px 20px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+                    <div style="font-weight:700;font-size:1rem;display:flex;align-items:center;gap:8px;">
+                        <span style="display:inline-block;width:4px;height:18px;border-radius:2px;background:var(--accent-color);"></span>
+                        ⚙️ إدارة المناخل — Sieve Manager
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <button class="btn btn-secondary btn-sm" onclick="resetSievesToDefault()">↩ إعادة الإعدادات الافتراضية</button>
+                        <button class="btn btn-sm" onclick="document.getElementById('addSievePanel').style.display=document.getElementById('addSievePanel').style.display==='none'?'flex':'none'" style="background:var(--success);">➕ منخل جديد</button>
+                    </div>
                 </div>
-                <div class="alert alert-info" style="margin-bottom:14px;padding:10px 14px;font-size:0.88rem;">
-                    🔧 أي تغيير هنا يُعيد بناء جميع جداول المناخل تلقائياً. قيم الكتل المُدخلة محفوظة.
+                <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:10px;">
+                    انقر على منخل نشط لحذفه × | انقر على محذوف + لإعادته 🔒 No.200 مطلوب دائماً
                 </div>
-                <div class="table-container" style="max-height:320px;overflow-y:auto;">
-                    <table style="font-size:0.9rem;">
-                        <thead>
-                            <tr>
-                                <th style="width:50px;">Use</th>
-                                <th>الاسم / Name</th>
-                                <th>الفتحة (mm) / Opening</th>
-                                <th style="width:60px;">حذف</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sieveManagerTbody"></tbody>
-                    </table>
-                </div>
-                <!-- Add new sieve row -->
-                <div style="display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap;">
-                    <input type="text"   id="newSieveName"    placeholder="اسم المنخل — e.g. No. 8"
-                        style="padding:8px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-primary);color:var(--text-primary);min-width:160px;">
-                    <input type="number" id="newSieveOpening" placeholder="فتحة (mm) — e.g. 2.36" step="0.001" min="0"
-                        style="padding:8px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-primary);color:var(--text-primary);width:160px;">
-                    <button class="btn btn-success" onclick="addSieve()" style="padding:8px 18px;">
-                        ➕ إضافة منخل | Add Sieve
-                    </button>
-                    <button class="btn btn-secondary" onclick="resetSievesToDefault()" style="padding:8px 18px;font-size:0.85rem;">
-                        ↩ استعادة الافتراضي | Reset to Default
-                    </button>
+
+                <!-- Chip container -->
+                <div id="sieveChipContainer" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px;background:var(--bg-inset);border-radius:8px;border:1px solid var(--border-subtle);min-height:52px;"></div>
+
+                <!-- Add sieve panel (hidden by default) -->
+                <div id="addSievePanel" style="display:none;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap;padding:12px;background:var(--bg-tertiary);border-radius:8px;">
+                    <input type="text" id="newSieveName" placeholder="اسم المنخل — مثل No. 8"
+                        style="padding:8px 10px;border:1.5px solid var(--border-color);border-radius:6px;background:var(--bg-secondary);color:var(--text-primary);min-width:150px;font-family:var(--font-body);">
+                    <input type="number" id="newSieveOpening" placeholder="فتحة (mm) — مثل 2.36" step="0.001" min="0"
+                        style="padding:8px 10px;border:1.5px solid var(--border-color);border-radius:6px;background:var(--bg-secondary);color:var(--text-primary);width:160px;font-family:var(--font-body);">
+                    <button class="btn btn-success btn-sm" onclick="addSieve()">➕ إضافة</button>
+                    <button class="btn btn-secondary btn-sm" onclick="document.getElementById('addSievePanel').style.display='none'">✕ إلغاء</button>
                 </div>
             </div>
 
@@ -1292,6 +1311,14 @@
                             <label>الكتلة بعد الغسل (اختياري) (g) | Washed Mass (optional)</label>
                             <input type="number" step="0.01" id="singleWashedMass" onchange="autoSave()">
                         </div>
+                        <div class="form-group">
+                            <label>⚖️ الكتلة الكلية بعد الغربلة (g) | Mass After Sieving (§8.5)</label>
+                            <input type="number" step="0.01" id="massAfterSieving" onchange="autoSave()" placeholder="للتحقق من فقد الكتلة ≤ 2%">
+                        </div>
+                        <div class="form-group">
+                            <label>⏱️ مدة الهز (دقيقة) | Shaking Duration (min)</label>
+                            <input type="number" step="0.5" id="shakingDuration" onchange="autoSave()" placeholder="مثال: 10">
+                        </div>
                     </div>
 
                     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">
@@ -1300,6 +1327,9 @@
                         </button>
                         <button class="btn" onclick="openPasteModal('single')" style="background:#6d28d9;">
                             📋 لصق من Excel | Paste from Excel
+                        </button>
+                        <button class="btn" onclick="calculateSingle(); setTimeout(()=>switchTab('tab3'),300);" style="background:var(--warning);color:#000;font-weight:700;">
+                            📊 احسب وانتقل للنتائج
                         </button>
                         <div class="autocalc-bar idle" id="autoCalcBar" style="margin-bottom:0;flex:1;min-width:180px;">
                             <span id="autoCalcDot" style="width:8px;height:8px;border-radius:50%;background:currentColor;flex-shrink:0;"></span>
@@ -1398,6 +1428,7 @@
 
                     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
                         <button class="btn btn-success" onclick="calculateCompositeSingle()">🧮 احسب | Calculate</button>
+                        <button class="btn" onclick="calculateCompositeSingle(); setTimeout(()=>switchTab('tab3'),300);" style="background:var(--warning);color:#000;font-weight:700;">📊 احسب وانتقل للنتائج</button>
                         <button class="btn" onclick="openPasteModal('coarser')" style="background:#6d28d9;">📋 لصق Coarser من Excel</button>
                         <button class="btn" onclick="openPasteModal('finer')"   style="background:#0891b2;">📋 لصق Finer من Excel</button>
                     </div>
@@ -1451,6 +1482,12 @@
                     <div id="cscfDisplay" class="alert alert-success mt-20" style="display: none;">
                         <strong>CSCF (Composite Sieve Correction Factor):</strong>
                         <span id="cscfValue"></span>
+                    </div>
+
+                    <div class="alert alert-info mt-20" id="compSingleTotalMassDisplay" style="display:none;">
+                        <strong>⚖️ الكتلة الجافة الكلية للعينة | Total Specimen Dry Mass:</strong>
+                        <span id="compSingleTotalMass" style="font-family:var(--font-mono);font-size:1.05rem;font-weight:700;margin:0 6px;">-</span> g
+                        <small style="color:var(--text-secondary);margin-right:8px;">(CP.Md + FP.Md المحسوبة)</small>
                     </div>
 
                     <div id="cplWarning" class="alert alert-danger mt-20" style="display: none;">
@@ -1644,6 +1681,7 @@
 
                     <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:16px;">
                         <button class="btn btn-success" onclick="calculateDoubleComposite()">🧮 احسب | Calculate</button>
+                        <button class="btn" onclick="calculateDoubleComposite(); setTimeout(()=>switchTab('tab3'),300);" style="background:var(--warning);color:#000;font-weight:700;">📊 احسب وانتقل للنتائج</button>
                         <button class="btn" onclick="openPasteModal('dbl1st')"   style="background:#6d28d9;">📋 لصق 1st Coarser</button>
                         <button class="btn" onclick="openPasteModal('dbl2ndCp')" style="background:#0891b2;">📋 لصق 2nd Coarser</button>
                         <button class="btn" onclick="openPasteModal('dbl2ndSub')" style="background:#059669;">📋 لصق 2nd SubS</button>
@@ -1864,7 +1902,7 @@
                         <span><strong>Duration:</strong> <span id="r-shake-dur" style="border-bottom:1px solid #555;display:inline-block;min-width:22px;">&nbsp;</span> min</span>
                         <span><strong>Wash No.200:</strong> <span class="ck" id="ck-wash-yes"></span> Yes &nbsp;<span class="ck" id="ck-wash-no"></span> No</span>
                     </div>
-                    <div style="display:flex;gap:16px;">
+                    <div style="display:flex;gap:16px;" id="r-mass-after-row">
                         <span><strong>Initial Dry Mass:</strong> <span id="r-ini-mass" style="border-bottom:1px solid #555;display:inline-block;min-width:45px;">&nbsp;</span> g</span>
                         <span><strong>Mass After Sieving:</strong> <span id="r-aft-mass" style="border-bottom:1px solid #555;display:inline-block;min-width:45px;">&nbsp;</span> g</span>
                         <span><strong>Mass Loss:</strong> <span id="r-mass-loss" style="border-bottom:1px solid #555;display:inline-block;min-width:28px;">&nbsp;</span>% &nbsp;<em style="color:#555;">[△&gt;2%: retest per §8.5]</em></span>
@@ -1913,7 +1951,10 @@
                 <!-- Classification and Summary Data -->
                 <div class="rpt-dark-hdr">Classification and Summary Data</div>
                 <div style="border-bottom:1px solid #000;">
-                    <div class="cls-row"><span class="lb2">Row 1: Atterberg Limits (ASTM D4318):</span> LL:&nbsp;<span class="vl2" id="r-ll"></span>&nbsp;&nbsp; PL:&nbsp;<span class="vl2" id="r-pl"></span>&nbsp;&nbsp; PI:&nbsp;<span class="vl2" id="r-pi"></span></div>
+                    <div class="cls-row"><span class="lb2">Row 1: Atterberg Limits (ASTM D4318):</span>
+                        <span id="r-atterberg-np" style="display:none;color:#555;font-style:italic;">Non-Plastic (NP)</span>
+                        <span id="r-atterberg-vals"> LL:&nbsp;<span class="vl2" id="r-ll"></span>&nbsp;&nbsp; PL:&nbsp;<span class="vl2" id="r-pl"></span>&nbsp;&nbsp; PI:&nbsp;<span class="vl2" id="r-pi"></span></span>
+                    </div>
                     <div class="cls-row"><span class="lb2">Row 2: Particle Parameters:</span> D10:&nbsp;<span class="vl2" id="r-d10"></span>&nbsp;mm&nbsp;&nbsp; D30:&nbsp;<span class="vl2" id="r-d30"></span>&nbsp;mm&nbsp;&nbsp; D60:&nbsp;<span class="vl2" id="r-d60"></span>&nbsp;mm</div>
                     <div class="cls-row"><span class="lb2">Row 3: Calculated Coefficients:</span> Cc (Curvature):&nbsp;<span class="vl2" id="r-cc"></span>&nbsp;&nbsp;|&nbsp;&nbsp; Cu (Uniformity):&nbsp;<span class="vl2" id="r-cu"></span></div>
                     <div class="cls-row"><span class="lb2">Row 4: Soil Classification USCS (ASTM D2487):</span>&nbsp;<span class="vl2" style="min-width:160px;" id="r-uscs"></span></div>
@@ -2484,8 +2525,42 @@
             const tabNumber = parseInt(tabId.replace('tab', ''));
             updateProgress(tabNumber);
 
-            if (tabId === 'tab3') displayFinalResults();
-            if (tabId === 'tab4') generateFinalReport();
+            if (tabId === 'tab3') {
+                // Ensure finalResults is up to date before displaying
+                try {
+                    if (currentTestMode === 'single') {
+                        const m = parseFloat(document.getElementById('singleSpecimenMass').value);
+                        if (m > 0) silentCalculateSingle();
+                    } else if (currentTestMode === 'composite-single') {
+                        const c = parseFloat(document.getElementById('compCoarserMass').value);
+                        const s = parseFloat(document.getElementById('compSubspecimenMass').value);
+                        if (c > 0 && s > 0) { calculateCompositeCoarser(); silentCalculateCompositeSingle(); }
+                    } else if (currentTestMode === 'composite-double') {
+                        const d1 = parseFloat(document.getElementById('double1stCPMd').value);
+                        const d2 = parseFloat(document.getElementById('double1stSubSMd').value);
+                        if (d1 > 0 && d2 > 0) calculateDoubleComposite();
+                    }
+                } catch(e) {}
+                displayFinalResults();
+            }
+            if (tabId === 'tab4') {
+                // Same auto-calc then report
+                try {
+                    if (currentTestMode === 'single') {
+                        const m = parseFloat(document.getElementById('singleSpecimenMass').value);
+                        if (m > 0) silentCalculateSingle();
+                    } else if (currentTestMode === 'composite-single') {
+                        const c = parseFloat(document.getElementById('compCoarserMass').value);
+                        const s = parseFloat(document.getElementById('compSubspecimenMass').value);
+                        if (c > 0 && s > 0) { calculateCompositeCoarser(); silentCalculateCompositeSingle(); }
+                    } else if (currentTestMode === 'composite-double') {
+                        const d1 = parseFloat(document.getElementById('double1stCPMd').value);
+                        const d2 = parseFloat(document.getElementById('double1stSubSMd').value);
+                        if (d1 > 0 && d2 > 0) calculateDoubleComposite();
+                    }
+                } catch(e) {}
+                generateFinalReport();
+            }
 
             localStorage.setItem('currentTab', tabId);
         }
@@ -2594,6 +2669,64 @@
         // SIEVE MANAGER — add / remove / hide sieves dynamically
         // ══════════════════════════════════════════════════════════════
         function renderSieveManager() {
+            // Support both old tbody and new chip container
+            const chipContainer = document.getElementById('sieveChipContainer');
+            if (chipContainer) {
+                chipContainer.innerHTML = '';
+                // Sort: largest opening first, Pan last
+                const sorted = [...standardSieves].sort((a, b) => {
+                    if (a.name === 'Pan') return 1;
+                    if (b.name === 'Pan') return -1;
+                    return b.opening - a.opening;
+                });
+                sorted.forEach(s => {
+                    const realIndex = standardSieves.indexOf(s);
+                    const isPan   = s.name === 'Pan';
+                    const isNo200 = Math.abs(s.opening - 0.075) < 0.0001;
+                    const chip = document.createElement('div');
+                    chip.style.cssText = `
+                        display:inline-flex;align-items:center;gap:5px;
+                        padding:6px 12px;border-radius:20px;font-size:0.82rem;font-weight:600;
+                        cursor:pointer;user-select:none;transition:all 0.18s;
+                        border:2px solid;
+                        font-family:var(--font-body);
+                    `;
+                    if (isPan || isNo200) {
+                        // Locked chips
+                        chip.style.background = 'var(--accent-light)';
+                        chip.style.borderColor = 'var(--accent-color)';
+                        chip.style.color = 'var(--accent-color)';
+                        chip.style.cursor = 'default';
+                        chip.innerHTML = `🔒 ${s.name}`;
+                        chip.title = 'هذا المنخل مطلوب ولا يمكن حذفه';
+                    } else if (s.use) {
+                        // Active chips
+                        chip.style.background = 'var(--accent-color)';
+                        chip.style.borderColor = 'var(--accent-color)';
+                        chip.style.color = '#fff';
+                        chip.style.boxShadow = '0 2px 6px var(--accent-glow)';
+                        chip.innerHTML = `✕ ${s.name}`;
+                        chip.title = `انقر لحذف/إخفاء ${s.name} (${s.opening} mm)`;
+                        chip.onclick = () => { toggleSieveUse(realIndex, false); };
+                        chip.onmouseenter = () => { chip.style.background = 'var(--danger)'; chip.style.borderColor = 'var(--danger)'; chip.style.transform = 'scale(1.05)'; };
+                        chip.onmouseleave = () => { chip.style.background = 'var(--accent-color)'; chip.style.borderColor = 'var(--accent-color)'; chip.style.transform = ''; };
+                    } else {
+                        // Inactive chips
+                        chip.style.background = 'var(--bg-tertiary)';
+                        chip.style.borderColor = 'var(--border-color)';
+                        chip.style.color = 'var(--text-muted)';
+                        chip.style.textDecoration = 'line-through';
+                        chip.innerHTML = `+ ${s.name}`;
+                        chip.title = `انقر لإعادة تفعيل ${s.name}`;
+                        chip.onclick = () => { toggleSieveUse(realIndex, true); };
+                        chip.onmouseenter = () => { chip.style.background = 'var(--success-light)'; chip.style.borderColor = 'var(--success)'; chip.style.color = 'var(--success)'; chip.style.textDecoration = ''; chip.style.transform = 'scale(1.05)'; };
+                        chip.onmouseleave = () => { chip.style.background = 'var(--bg-tertiary)'; chip.style.borderColor = 'var(--border-color)'; chip.style.color = 'var(--text-muted)'; chip.style.textDecoration = 'line-through'; chip.style.transform = ''; };
+                    }
+                    chipContainer.appendChild(chip);
+                });
+                return;
+            }
+            // Fallback: old table renderer
             const tbody = document.getElementById('sieveManagerTbody');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -2972,6 +3105,9 @@
                     cscf = ppRounded;
                 }
 
+                // Skip Pan from Coarser — real Pan comes from Finer portion
+                if (sieve.name === 'Pan') { previousCMR = cmr; return; }
+
                 // Include ALL rows — no zero-filter
                 coarserResults.push(normalizeFinalResultRow({
                     sieve: sieve.name, opening: sieve.opening,
@@ -2980,8 +3116,6 @@
 
                 previousCMR = cmr;
             });
-
-            document.getElementById('cscfDisplay').style.display = 'block';
             document.getElementById('cscfValue').textContent = cscf.toFixed(2) + '%';
 
             // ---- Finer portion (all active rows, no zero-filter) ----
@@ -3003,14 +3137,19 @@
                 const mrCell  = document.getElementById(`compFiner_mr_${index}`);
                 const fcpCell = document.getElementById(`compFiner_fcp_${index}`);
                 const ppCell  = document.getElementById(`compFiner_pp_${index}`);
-                if (mrCell)  mrCell.textContent  = mr.toFixed(2);
+
+                // Scale mr from subspecimen to full specimen equivalent
+                const scaleFactor = subsMd > 0 ? sMd / subsMd : 1;
+                const mrScaled = mr * scaleFactor;
+
+                if (mrCell)  mrCell.textContent  = mrScaled.toFixed(2);
                 if (fcpCell) fcpCell.textContent = fcpRounded.toFixed(decPl);
                 if (ppCell)  ppCell.textContent  = finalPPRounded.toFixed(decPl);
 
                 // Include ALL rows — no zero-filter
                 finerResults.push(normalizeFinalResultRow({
                     sieve: sieve.name, opening: sieve.opening,
-                    mr: mr, cmr: fcmr, pr: fcpRounded, cpr: fcpRounded, pp: finalPPRounded
+                    mr: mrScaled, cmr: fcmr, pr: fcpRounded, cpr: fcpRounded, pp: finalPPRounded
                 }));
 
                 previousCMR = fcmr;
@@ -3107,12 +3246,18 @@
             // Store CSCF for finer calculation
             _compositeCscf = cscf;
 
-            // Show CSCF
+            // Show CSCF and Total Mass
             const cscfDisplay = document.getElementById('cscfDisplay');
             const cscfValue   = document.getElementById('cscfValue');
             if (cscfDisplay && cscfValue) {
                 cscfDisplay.style.display = 'block';
                 cscfValue.textContent = cscf.toFixed(2) + '%';
+            }
+            const totalMassEl = document.getElementById('compSingleTotalMassDisplay');
+            const totalMassVal = document.getElementById('compSingleTotalMass');
+            if (totalMassEl && totalMassVal) {
+                totalMassEl.style.display = 'block';
+                totalMassVal.textContent = sMd.toFixed(2);
             }
 
             // CPL check
@@ -3144,6 +3289,14 @@
         function calculateCompositeFiner() {
             const subsMd = parseFloat(document.getElementById('compSubspecimenMass').value) || 0;
             const cscf   = _compositeCscf;
+
+            // Compute full specimen mass for scaling
+            const cpMd   = parseFloat(document.getElementById('compCoarserMass').value)      || 0;
+            const fpMm   = parseFloat(document.getElementById('compFinerMoistMass').value)    || 0;
+            const wfp    = parseFloat(document.getElementById('compFinerWaterContent').value) || 0;
+            const fpMd   = wfp > 0 ? fpMm / (1 + wfp / 100) : fpMm;
+            const sMd    = cpMd + fpMd;
+            const scaleFactor = (subsMd > 0 && sMd > 0) ? sMd / subsMd : 1;
 
             if (subsMd === 0) { autoSave(); return; }
 
@@ -3178,8 +3331,8 @@
                 const fcpRounded    = roundToNearest(fcp, roundTo);
                 const finalPPRounded = roundToNearest(finalPP, roundTo);
 
-                // Write to read-only cells: MR (4), FCP (5), FinalPP (6)
-                if (cells[4]) cells[4].textContent = mr.toFixed(2);
+                // Write to read-only cells: MR (4) scaled to full specimen, FCP (5), FinalPP (6)
+                if (cells[4]) cells[4].textContent = (mr * scaleFactor).toFixed(2);
                 if (cells[5]) cells[5].textContent = fcpRounded.toFixed(decPl);
                 if (cells[6]) cells[6].textContent = finalPPRounded.toFixed(decPl);
 
@@ -3374,6 +3527,9 @@
                     cscf1st = ppRounded;
                 }
 
+                // Skip Pan from 1st Coarser — real Pan comes from the final subspecimen
+                if (sieve.name === 'Pan') { previousCMR = cmr; return; }
+
                 // ALL rows — no zero-filter
                 results1stCoarser.push(normalizeFinalResultRow({
                     sieve: sieve.name, opening: sieve.opening,
@@ -3382,8 +3538,6 @@
 
                 previousCMR = cmr;
             });
-
-            // ========== 2nd Coarser Portion — ALL active rows ==========
             if (double2ndCPMd > 0 && double1stSubSMd > 0) {
                 previousCMR = 0;
                 let cscf2nd = cscf1st;
@@ -3404,7 +3558,7 @@
                     const mrCell  = document.getElementById(`double2ndCP_mr_${index}`);
                     const fcpCell = document.getElementById(`double2ndCP_fcp_${index}`);
                     const ppCell  = document.getElementById(`double2ndCP_pp_${index}`);
-                    if (mrCell)  mrCell.textContent  = mr.toFixed(2);
+                    if (mrCell)  mrCell.textContent  = (mr * (double1stSubSMd > 0 ? totalSMd / double1stSubSMd : 1)).toFixed(2);
                     if (fcpCell) fcpCell.textContent = fcpRounded.toFixed(decPl);
                     if (ppCell)  ppCell.textContent  = finalPPRounded.toFixed(decPl);
 
@@ -3412,10 +3566,17 @@
                         cscf2nd = finalPPRounded;
                     }
 
+                    // Scale mr from 1st subspecimen to full specimen equivalent
+                    const scale2ndCp = double1stSubSMd > 0 ? totalSMd / double1stSubSMd : 1;
+                    const mrScaled2ndCp = mr * scale2ndCp;
+
+                    // Skip Pan from 2nd Coarser — real Pan comes from 2nd Subspecimen
+                    if (sieve.name === 'Pan') { previousCMR = fcmr; return; }
+
                     // ALL rows — no zero-filter
                     results2ndCoarser.push(normalizeFinalResultRow({
                         sieve: sieve.name, opening: sieve.opening,
-                        mr: mr, cmr: fcmr, pr: fcpRounded, cpr: fcpRounded, pp: finalPPRounded
+                        mr: mrScaled2ndCp, cmr: fcmr, pr: fcpRounded, cpr: fcpRounded, pp: finalPPRounded
                     }));
 
                     previousCMR = fcmr;
@@ -3441,14 +3602,18 @@
                         const mrCell  = document.getElementById(`double2ndSubS_mr_${index}`);
                         const fcpCell = document.getElementById(`double2ndSubS_fcp_${index}`);
                         const ppCell  = document.getElementById(`double2ndSubS_pp_${index}`);
-                        if (mrCell)  mrCell.textContent  = mr.toFixed(2);
+                        if (mrCell)  mrCell.textContent  = (mr * (double2ndSubSMd > 0 ? totalSMd / double2ndSubSMd : 1)).toFixed(2);
                         if (fcpCell) fcpCell.textContent = fcpRounded.toFixed(decPl);
                         if (ppCell)  ppCell.textContent  = finalPPRounded.toFixed(decPl);
+
+                        // Scale mr from 2nd subspecimen to full specimen equivalent
+                        const scale2ndSub = double2ndSubSMd > 0 ? totalSMd / double2ndSubSMd : 1;
+                        const mrScaled2ndSub = mr * scale2ndSub;
 
                         // ALL rows — no zero-filter
                         results2ndSubS.push(normalizeFinalResultRow({
                             sieve: sieve.name, opening: sieve.opening,
-                            mr: mr, cmr: fcmr, pr: fcpRounded, cpr: fcpRounded, pp: finalPPRounded
+                            mr: mrScaled2ndSub, cmr: fcmr, pr: fcpRounded, cpr: fcpRounded, pp: finalPPRounded
                         }));
 
                         previousCMR = fcmr;
@@ -3492,6 +3657,21 @@
         // Helper function for rounding
         function roundToNearest(value, precision) {
             return Math.round(value / precision) * precision;
+        }
+
+        function toggleAtterberg(show) {
+            document.getElementById('atterbergFields').style.display = show ? 'block' : 'none';
+            document.getElementById('atterbergNP').style.display    = show ? 'none'  : 'block';
+            if (!show) {
+                // Clear values when NP selected
+                const ll = document.getElementById('liquidLimit');
+                const pl = document.getElementById('plasticLimit');
+                const pi = document.getElementById('plasticityIndex');
+                if (ll) ll.value = '';
+                if (pl) pl.value = '';
+                if (pi) pi.value = '';
+            }
+            autoSave();
         }
 
         // Calculate Plasticity Index
@@ -3572,24 +3752,58 @@
             document.getElementById('aashtoClass').textContent      = aashtoResult.group;
             document.getElementById('aashtoDescription').textContent= aashtoResult.description;
 
-            // Final Gradation Table — ALL rows, no zero-filter
+            // Final Gradation Table — built from finalResults (only sieves actually used)
             const tbody = document.getElementById('finalResultsTableBody');
             tbody.innerHTML = '';
 
-            let cumMR = 0;
-            finalResults.forEach(result => {
-                cumMR += (result.mr || 0);
+            // Derive total specimen mass from test mode inputs
+            let _totalMass = 0;
+            if (currentTestMode === 'single') {
+                _totalMass = parseFloat(document.getElementById('singleSpecimenMass').value) || 0;
+            } else if (currentTestMode === 'composite-single') {
+                const _cpMd = parseFloat(document.getElementById('compCoarserMass').value) || 0;
+                const _fpMm = parseFloat(document.getElementById('compFinerMoistMass').value) || 0;
+                const _wfp  = parseFloat(document.getElementById('compFinerWaterContent').value) || 0;
+                _totalMass = _cpMd + (_wfp > 0 ? _fpMm / (1 + _wfp / 100) : _fpMm);
+            } else if (currentTestMode === 'composite-double') {
+                const _cpMd = parseFloat(document.getElementById('double1stCPMd').value) || 0;
+                const _fpMm = parseFloat(document.getElementById('double1stFPMm').value) || 0;
+                const _wfp  = parseFloat(document.getElementById('double1stFPw').value)  || 0;
+                _totalMass = _cpMd + (_wfp > 0 ? _fpMm / (1 + _wfp / 100) : _fpMm);
+            }
+
+            const method = document.getElementById('methodSelect').value;
+            const decPl  = method === 'A' ? 0 : 1;
+
+            // Sort descending by opening
+            const sortedResults = [...finalResults].sort((a, b) => b.opening - a.opening);
+
+            sortedResults.forEach((result, idx) => {
                 const row = tbody.insertRow();
-                // pr and cpr may not exist on composite rows — handle gracefully
-                const prVal  = result.pr  != null ? result.pr.toFixed(1)  : '—';
-                const cprVal = result.cpr != null ? result.cpr.toFixed(1) : '—';
+                let displayMR, displayCumMR, displayPR, displayCPR;
+
+                if (_totalMass > 0) {
+                    // Derive all mass columns from % Passing and total specimen mass
+                    const prevPP    = idx === 0 ? 100 : sortedResults[idx - 1].pp;
+                    displayCumMR    = (100 - result.pp) / 100 * _totalMass;
+                    const prevCumMR = (100 - prevPP)    / 100 * _totalMass;
+                    displayMR       = displayCumMR - prevCumMR;
+                    displayPR       = (displayMR  / _totalMass) * 100;
+                    displayCPR      = (displayCumMR / _totalMass) * 100;
+                } else {
+                    displayMR    = result.mr  || 0;
+                    displayCumMR = result.cmr || 0;
+                    displayPR    = result.pr  || 0;
+                    displayCPR   = result.cpr || 0;
+                }
+
                 row.innerHTML = `
                     <td>${result.sieve}</td>
                     <td>${result.opening.toFixed(3)}</td>
-                    <td>${(result.mr || 0).toFixed(2)}</td>
-                    <td>${cumMR.toFixed(2)}</td>
-                    <td>${prVal}</td>
-                    <td>${cprVal}</td>
+                    <td>${displayMR.toFixed(2)}</td>
+                    <td>${displayCumMR.toFixed(2)}</td>
+                    <td>${displayPR.toFixed(decPl)}</td>
+                    <td>${displayCPR.toFixed(decPl)}</td>
                     <td><strong>${result.pp.toFixed(1)}</strong></td>
                 `;
             });
@@ -4541,31 +4755,53 @@
             };
             const tbody=$('rpt-sieve-body');
             tbody.innerHTML='';
-            let totalMR=0;
-            finalResults.forEach(r=>{ totalMR+=(r.mr||0); });
+
+            // Derive total specimen mass
+            let _rptTotalMass = 0;
+            if(mode==='single'){
+                _rptTotalMass = parseFloat(val('singleSpecimenMass')) || 0;
+            } else if(mode==='composite-single'){
+                const _c=parseFloat(val('compCoarserMass'))||0;
+                const _f=parseFloat(val('compFinerMoistMass'))||0;
+                const _w=parseFloat(val('compFinerWaterContent'))||0;
+                _rptTotalMass = _c + (_w>0 ? _f/(1+_w/100) : _f);
+            } else if(mode==='composite-double'){
+                const _c=parseFloat(val('double1stCPMd'))||0;
+                const _f=parseFloat(val('double1stFPMm'))||0;
+                const _w=parseFloat(val('double1stFPw'))||0;
+                _rptTotalMass = _c + (_w>0 ? _f/(1+_w/100) : _f);
+            }
+
+            const mthd=val('methodSelect'); const dP=mthd==='A'?0:1;
+            const sortedRpt=[...finalResults].sort((a,b)=>b.opening-a.opening);
 
             if(finalResults.length===0){
                 tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:#888;">— No results yet —</td></tr>';
             } else {
-                let firstActive=false;
-                finalResults.forEach(r=>{
+                sortedRpt.forEach((r,idx)=>{
+                    // Skip leading 100% rows (no material retained yet)
+                    if(r.pp>=99.99){
+                        const anyBelow=sortedRpt.slice(idx+1).some(s=>s.pp<99.99);
+                        if(anyBelow) return;
+                    }
+                    let displayMR=0,displayCumMR=0,displayPR=0,displayCPR=0;
+                    if(_rptTotalMass>0){
+                        const prevPP=idx===0?100:sortedRpt[idx-1].pp;
+                        displayCumMR=(100-r.pp)/100*_rptTotalMass;
+                        const prevCumMR=(100-prevPP)/100*_rptTotalMass;
+                        displayMR=displayCumMR-prevCumMR;
+                        displayPR=(displayMR/_rptTotalMass)*100;
+                        displayCPR=(displayCumMR/_rptTotalMass)*100;
+                    }
                     const isPan=r.opening<0.001;
-                    const hasCMR=(r.cmr||0)>0.0001;
-                    const ppBelow100=r.pp<99.99;
-                    if(!firstActive&&!hasCMR&&!ppBelow100&&!isPan) return;
-                    if(hasCMR||ppBelow100||isPan) firstActive=true;
-                    if(!firstActive) return;
                     const tr=document.createElement('tr');
-                    const name=sieveDisplay[r.sieve]||r.sieve;
-                    const mr=(r.mr||0).toFixed(2);
-                    const cmr=r.cmr!=null?r.cmr.toFixed(2):'0.00';
-                    const pr=r.pr!=null?r.pr.toFixed(1):'0.0';
-                    const pp=r.pp!=null?r.pp.toFixed(1):'100.0';
                     if(isPan) tr.style.background='#f0f0f0';
-                    tr.innerHTML='<td>'+name+'</td><td>'+mr+'</td><td>'+cmr+'</td><td>'+pr+'</td><td><strong>'+pp+'</strong></td>';
+                    const name=sieveDisplay[r.sieve]||r.sieve;
+                    tr.innerHTML='<td>'+name+'</td><td>'+displayMR.toFixed(2)+'</td><td>'+displayCumMR.toFixed(2)+'</td><td>'+displayPR.toFixed(dP)+'</td><td><strong>'+r.pp.toFixed(1)+'</strong></td>';
                     tbody.appendChild(tr);
                 });
             }
+            const totalMR=_rptTotalMass>0?_rptTotalMass:finalResults.reduce((s,r)=>s+(r.mr||0),0);
             txt('rpt-total-mr',totalMR>0?totalMR.toFixed(2):'');
 
             // FRACTIONS
@@ -4588,9 +4824,24 @@
             const cu=getNum('cuValue'),cc=getNum('ccValue');
             const uscs=$('uscsClass'),uscsD=$('uscsDescription');
             const aashto=$('aashtoClass'),aashtoD=$('aashtoDescription');
-            txt('r-ll', ll>0?ll.toFixed(0):'—');
-            txt('r-pl', pl>0?pl.toFixed(0):'—');
-            txt('r-pi', pi>0?pi.toFixed(0):'—');
+
+            // Atterberg: show NP or values
+            const npEl=$('r-atterberg-np'), valsEl=$('r-atterberg-vals');
+            if(ll>0){
+                if(npEl) npEl.style.display='none';
+                if(valsEl) valsEl.style.display='';
+                txt('r-ll',ll.toFixed(0)); txt('r-pl',pl>0?pl.toFixed(0):'—'); txt('r-pi',pi>0?pi.toFixed(0):'—');
+            } else {
+                if(npEl) npEl.style.display='';
+                if(valsEl) valsEl.style.display='none';
+            }
+
+            // Mass After Sieving row visibility
+            const aftMassRow=$('r-mass-after-row');
+            const aftMassVal=val('massAfterSieving');
+            if(aftMassRow) aftMassRow.style.display = aftMassVal ? '' : 'none';
+            txt('r-aft-mass', aftMassVal);
+
             txt('r-d10',d10>0?d10.toFixed(3):'N/A');
             txt('r-d30',d30>0?d30.toFixed(3):'N/A');
             txt('r-d60',d60>0?d60.toFixed(3):'N/A');
@@ -4676,9 +4927,12 @@
                         const mass = parseFloat(document.getElementById('singleSpecimenMass').value);
                         if (mass > 0) { silentCalculateSingle(); }
                     } else if (currentTestMode === 'composite-single') {
-                        const cpMd = parseFloat(document.getElementById('compCoarserMass').value);
+                        const cpMd   = parseFloat(document.getElementById('compCoarserMass').value);
                         const subsMd = parseFloat(document.getElementById('compSubspecimenMass').value);
-                        if (cpMd > 0 && subsMd > 0) calculateCompositeCoarser();
+                        if (cpMd > 0 && subsMd > 0) {
+                            calculateCompositeCoarser();      // updates Tab2 display
+                            silentCalculateCompositeSingle(); // builds finalResults silently
+                        }
                     } else if (currentTestMode === 'composite-double') {
                         const d1 = parseFloat(document.getElementById('double1stCPMd').value);
                         const d2 = parseFloat(document.getElementById('double1stSubSMd').value);
@@ -4746,6 +5000,72 @@
                 previousCMR = cmr;
             });
             // Draw live mini chart in tab2
+            drawLiveMiniChart();
+            saveToLocalStorage();
+        }
+
+        // Silent composite-single calculation — builds finalResults without alert popup
+        function silentCalculateCompositeSingle() {
+            if (resultsLocked) return;
+            const cpMd   = parseFloat(document.getElementById('compCoarserMass').value)      || 0;
+            const fpMm   = parseFloat(document.getElementById('compFinerMoistMass').value)   || 0;
+            const wfp    = parseFloat(document.getElementById('compFinerWaterContent').value) || 0;
+            const subsMd = parseFloat(document.getElementById('compSubspecimenMass').value)  || 0;
+            const separatingSieve = parseFloat(document.getElementById('compSingleSeparatingSieve').value);
+            if (cpMd === 0 || subsMd === 0) return;
+
+            const fpMd   = fpMm / (1 + wfp / 100);
+            const sMd    = cpMd + fpMd;
+            const method = document.getElementById('methodSelect').value;
+            const roundTo= method === 'A' ? 1 : 0.1;
+
+            // Coarser results
+            let previousCMR = 0, cscf = 100;
+            const coarserResults = [];
+            standardSieves.forEach((sieve, index) => {
+                const inp = document.getElementById(`compCoarser_cmr_${index}`);
+                if (!inp) return;
+                const cmr = parseFloat(inp.value) || 0;
+                const mr  = cmr - previousCMR;
+                const cpr = sMd > 0 ? (cmr / sMd) * 100 : 0;
+                const pr  = sMd > 0 ? (mr  / sMd) * 100 : 0;
+                const pp  = 100 - cpr;
+                const cprR = roundToNearest(cpr, roundTo);
+                const prR  = roundToNearest(pr,  roundTo);
+                const ppR  = roundToNearest(pp,  roundTo);
+                if (Math.abs(sieve.opening - separatingSieve) < 0.001) cscf = ppR;
+                if (sieve.name === 'Pan') { previousCMR = cmr; return; }
+                coarserResults.push(normalizeFinalResultRow({
+                    sieve: sieve.name, opening: sieve.opening,
+                    mr, cmr, pr: prR, cpr: cprR, pp: ppR
+                }));
+                previousCMR = cmr;
+            });
+
+            // Finer results
+            previousCMR = 0;
+            const finerResults = [];
+            const scaleFactor = subsMd > 0 ? sMd / subsMd : 1;
+            standardSieves.forEach((sieve, index) => {
+                const inp = document.getElementById(`compFiner_fcmr_${index}`);
+                if (!inp) return;
+                const fcmr    = parseFloat(inp.value) || 0;
+                const mr      = fcmr - previousCMR;
+                const fcp     = subsMd > 0 ? (fcmr / subsMd) * 100 : 0;
+                const finalPP = cscf * (1 - (subsMd > 0 ? fcmr / subsMd : 0));
+                finerResults.push(normalizeFinalResultRow({
+                    sieve: sieve.name, opening: sieve.opening,
+                    mr: mr * scaleFactor, cmr: fcmr,
+                    pr: roundToNearest(fcp, roundTo), cpr: roundToNearest(fcp, roundTo),
+                    pp: roundToNearest(finalPP, roundTo)
+                }));
+                previousCMR = fcmr;
+            });
+
+            finalResults = buildUnifiedFinalResults([
+                { rows: coarserResults, governs: [] },
+                { rows: finerResults,   governs: [separatingSieve] }
+            ]);
             drawLiveMiniChart();
             saveToLocalStorage();
         }
